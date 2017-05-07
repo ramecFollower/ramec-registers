@@ -1,0 +1,656 @@
+<alfresco-config>
+	<!--С РЕЕСТРОМ ЗАДАЧА-->
+  <config evaluator="string-compare" condition="activiti$ramec-porucheniye-parallel">
+    <forms>
+      <form>
+        <field-visibility>
+          <show id="bpm:workflowDescription" />
+          <show id="bpm:workflowDueDate" />
+          <show id="ramecwf:summaryHistory" />
+          <show id="ramecwf:initiator" />
+          <show id="packageItems" />
+        </field-visibility>
+        <appearance>
+          <set id="task-info" appearance="" />
+          <set id="assignees" appearance="bordered-panel" label="ВНИМАНИЕ! Если не заполнено ни одно из этих полей, процесс будет автоматически завершён." template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="documents" appearance="" />
+          <field id="bpm:workflowDescription" label-id="label.title" set="task-info" read-only="true" mandatory="true" help="">
+            <control template="/org/alfresco/components/form/controls/textarea.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field id="bpm:workflowDueDate" label-id="alvex.workflow.task-due-date" read-only="true" set="task-info" />
+          <field id="ramecwf:summaryHistory" set="task-info" />
+          <field id="ramecwf:initiator" label ="Руководитель" set="assignees">
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field id="packageItems" label-id="alvex.workflow.related-documents" set="documents">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+            </control>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+    <config evaluator="task-type" condition="ramecwf:startMultiAssigneeTask">
+    <forms>
+      <form>
+        <field-visibility>
+          <show id="bpm:workflowDescription" />
+          <show id="bpm:workflowDueDate" />
+          <show id="ramecwf:summaryHistory" />
+          <show id="ramecwf:initiator" />
+          <show id="packageItems" />
+        </field-visibility>
+        <appearance>
+          <set id="task-info" appearance="" />
+          <set id="assignees" appearance="bordered-panel" label="ВНИМАНИЕ! Если не заполнено ни одно из этих полей, процесс будет автоматически завершён." template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="documents" appearance="" />
+          <field id="bpm:workflowDescription" label-id="label.title" read-only="true" set="task-info" mandatory="true" help="">
+            <control template="/org/alfresco/components/form/controls/textarea.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field id="bpm:workflowDueDate" label-id="alvex.workflow.task-due-date" read-only="true" set="task-info" />
+          <field id="ramecwf:summaryHistory" set="task-info" />
+          <field id="ramecwf:initiator" label ="Руководитель" set="assignees">
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field id="packageItems" label-id="alvex.workflow.related-documents" set="documents">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+            </control>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+	<!--форма руководителя 2.1-->
+	<config evaluator="task-type" condition="ramecwf:setMultiAssigneeTask">
+	<forms>
+		<form>
+			<field-visibility>
+				<show id="bpm:description" />
+				<show id="bpm:dueDate"/>
+				<show id="bpm:priority"/>
+				<show id="ramecwf:resolution"/>
+				<show id="ramecwf:assignees"/>
+				<show id="ramecwf:mainAssignee"/>
+				<show id="packageItems"/>
+				<show id="ramecwf:setOutcome"/>
+			</field-visibility>
+			<appearance>
+				<set appearance="title" label-id="Информация о входящем документе" id="InfoAboutDoc"/>
+				<field id="bpm:description" label-id="Описание" set="InfoAboutDoc"  read-only="true" help="1">
+						<control template="/org/alfresco/components/form/controls/textfield.ftl">
+							<control-param name="style">width: 98%</control-param>
+						</control>
+				</field>
+				<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="whitespace" label-id="" id="info"/>
+				<field set="info" label-id="workflow.field.due" id="bpm:dueDate" read-only="true">
+					<control template="/org/alfresco/components/form/controls/date.ftl">
+						<control-param name="showTime">false</control-param>
+						<control-param name="submitTime">false</control-param>
+					</control>
+				</field>
+				<field set="info" label-id="workflow.field.priority" read-only="true" id="bpm:priority">
+					<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+				</field>
+				<set appearance="title" label-id="Моя резолюция" id="myresolution"/>
+				<field set="myresolution" label-id="Моя резолюция" id="ramecwf:resolution">
+					<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+				</field>
+				<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Выбрать исполнителей" id="chooseassignees"/>
+				<field id="ramecwf:assignees" mandatory="true" set="chooseassignees">
+					<control template="/orgchart-picker.ftl"/>
+				</field>
+				<field id="ramecwf:mainAssignee" label-id="Отвественный исполнитель" set="chooseassignees">
+					<control template="/orgchart-picker.ftl"/>
+				</field>
+				<set id="adddocs" appearance=""/>
+				<field set="adddocs" id="packageItems" label-id="alvex.workflow.related-documents">
+					<control template="/alvex-uploader.ftl">
+						<control-param name="uploadDirectory">uploads</control-param>
+						<control-param name="createUploadDirectory">true</control-param>
+					</control>
+				</field>
+				<set id="response" appearance="title" label-id="workflow.set.response" />
+					<field id="ramecwf:setOutcome" label-id="workflow.field.outcome" set="response">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+			</appearance>
+		</form>
+	</forms>
+</config>
+	<!--форма исполнителя 3.1-->
+	<config evaluator="task-type" condition="ramecwf:performMultiAssigneeTask">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:dueDate"/>
+					<show id="bpm:priority"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="ramecwf:directive"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:packageItems"/>
+					<show id="ramecwf:assignees"/>
+					<show id="ramecwf:groupAssignees"/>
+					<show id="ramecwf:performOutcome"/>
+				</field-visibility>
+				<appearance>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoabouttask"/>
+					<field set="infoabouttask" label-id="alvex.workflow.task-due-date" read-only="true" id="bpm:DueDate"/>
+					<field set="infoabouttask" label-id="workflow.field.priority" read-only="true" id="bpm:priority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="whitespace" id="directive"/>
+					<field set="directive" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="directive" label-id="Постановка от назначившего задачу" id="ramecwf:directive" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					
+					<set appearance="title" label-id="Результат" id="info"/>
+					<field set="info" label-id="Мой комментарий" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="info" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Выбрать исполнителей" id="chooseassignees"/>
+					<field id="ramecwf:assignees" label-id="Исполнитель(-ли)" set="chooseassignees">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<field id="ramecwf:groupAssignees" set="chooseassignees" label-id="Группа"/>
+					<set id="response" label-id="workflow.set.response" appearance="title" />
+					<field id="ramecwf:performOutcome" label-id="workflow.field.outcome" set="response">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--форма уведомления ответсвенного и контроллера-->
+	<config evaluator="task-type" condition="ramecwf:notifyMultiAssigneeTask">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:dueDate"/>
+					<show id="bpm:priority"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:packageItems"/>
+				</field-visibility>
+				<appearance>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoabouttask"/>
+					<field set="infoabouttask" label-id="alvex.workflow.task-due-date" id="bpm:workflowDueDate"/>
+					<field set="infoabouttask" label-id="workflow.field.priority" id="bpm:priority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="whitespace" id="directive"/>
+					<field set="directive" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="directive" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--проверка вышестоящим выполненного таска 3.2-->
+	<config evaluator="task-type" condition="ramecwf:checkMultiAssigneeTask">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="ramecwf:directive"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="ramecwf:resultSummary"/>
+					<show id="ramecwf:resultLocal"/>
+					<show id="ramecwf:assignees"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:checkOutcome"/>
+				</field-visibility>
+				<appearance>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoZad"/>
+					<field set="infoZad" label-id="Постановка от назначившего задачу" id="ramecwf:directive" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="infoZad" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set appearance="whitespace" id="infoZad1"/>
+					<field set="infoZad1" label-id="Информация о запущенных заданиях" id="ramecwf:resultSummary" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="infoZad1" label-id="Результат выполнения этого задания" id="ramecwf:resultLocal" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field id="ramecwf:assignees" label-id="Исполнитель" read-only="true" set="infoZad1">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<field id="packageItems" label-id="alvex.workflow.related-documents" set="infoZad">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+					<set appearance="title" label-id="Результат проверки" id="mydecision"/>
+					<field set="mydecision" label-id="Резолюция" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field set="response" label-id="workflow.field.outcome" id="ramecwf:checkOutcome">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--форма итоговой проверки ВСЕГО процесса руководителем 2.2-->
+	<config evaluator="task-type" condition="ramecwf:finalApprovement">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="ramecwf:resolution"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:finApprOutcome"/>
+				</field-visibility>
+				<appearance>
+					<set appearance="title" label-id="Информация о задаче" id="infabouttask"/>
+					<field set="infabouttask" label-id="Моя резолюция" id="ramecwf:resolution" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set appearance="title" label-id="Проверка результата" id="info"/>
+					<field set="info" label-id="Комментарии исполнителей" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field id="packageItems" label-id="alvex.workflow.related-documents" set="info">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+					<field set="info" label-id="Результат проверки" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field set="response" label-id="workflow.field.outcome" id="ramecwf:finApprOutcome">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА ЗАДАЧА-->
+	<config evaluator="string-compare" condition="activiti$ramec-sluzap-parallel">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:workflowDescription"/>
+					<show id="bpm:workflowDueDate"/>
+					<show id="bpm:workflowPriority"/>
+					<show id="ramecwf:resolution"/>
+					<show id="ramecwf:assignees"/>
+					<show id="ramecwf:mainAssignee"/>
+					<show id="packageItems"/>
+				</field-visibility>
+				<appearance>
+					<set appearance="title" label-id="Информация о входящем документе" id="InfoAboutDoc"/>
+					<field id="bpm:workflowDescription" label-id="Описание" set="InfoAboutDoc" mandatory="true" help="">
+						<control template="/org/alfresco/components/form/controls/textfield.ftl">
+							<control-param name="style">width: 98%</control-param>
+						</control>
+					</field>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="whitespace" label-id="" id="info"/>
+					<field set="info" label-id="workflow.field.due" id="bpm:workflowDueDate">
+						<control template="/org/alfresco/components/form/controls/date.ftl">
+							<control-param name="showTime">false</control-param>
+							<control-param name="submitTime">false</control-param>
+						</control>
+					</field>
+					<field set="info" label-id="workflow.field.priority" id="bpm:workflowPriority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="title" label-id="Моя резолюция" id="myresolution"/>
+					<field set="myresolution" label-id="Моя резолюция" id="ramecwf:resolution">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Выбрать исполнителей" id="chooseassignees"/>
+					<field id="ramecwf:assignees" mandatory="true" set="chooseassignees">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<field id="ramecwf:mainAssignee" label-id="Отвественный исполнитель" set="chooseassignees">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<set id="adddocs" appearance=""/>
+					<field set="adddocs" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА форма руководителя 2.1-->
+	<config evaluator="task-type" condition="ramecwf:setMultiAssigneeTaskSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:workflowDescription"/>
+					<show id="bpm:workflowDueDate"/>
+					<show id="bpm:workflowPriority"/>
+					<show id="ramecwf:resolution"/>
+					<show id="ramecwf:assignees"/>
+					<show id="ramecwf:mainAssignee"/>
+					<show id="packageItems"/>
+				</field-visibility>
+				<appearance>
+					<set appearance="title" label-id="Информация о входящем документе" id="InfoAboutDoc"/>
+					<field id="bpm:workflowDescription" label-id="Описание" set="InfoAboutDoc" mandatory="true" help="">
+						<control template="/org/alfresco/components/form/controls/textfield.ftl">
+							<control-param name="style">width: 98%</control-param>
+						</control>
+					</field>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="whitespace" label-id="" id="info"/>
+					<field set="info" label-id="workflow.field.due" id="bpm:workflowDueDate">
+						<control template="/org/alfresco/components/form/controls/date.ftl">
+							<control-param name="showTime">false</control-param>
+							<control-param name="submitTime">false</control-param>
+						</control>
+					</field>
+					<field set="info" label-id="workflow.field.priority" id="bpm:workflowPriority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="title" label-id="Моя резолюция" id="myresolution"/>
+					<field set="myresolution" label-id="Моя резолюция" id="ramecwf:resolution">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Выбрать исполнителей" id="chooseassignees"/>
+					<field id="ramecwf:assignees" mandatory="true" set="chooseassignees">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<field id="ramecwf:mainAssignee" label-id="Отвественный исполнитель" set="chooseassignees">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<set id="adddocs" appearance=""/>
+					<field set="adddocs" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА форма исполнителя 3.1-->
+	<config evaluator="task-type" condition="ramecwf:performMultiAssigneeTaskSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:dueDate"/>
+					<show id="bpm:priority"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="ramecwf:directive"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:assignees"/>
+					<show id="ramecwf:groupAssignees"/>
+					<show id="ramecwf:performOutcomeSluZap"/>
+				</field-visibility>
+				<appearance>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoabouttask"/>
+					<field set="infoabouttask" read-only="true" id="bpm:dueDate"/>
+					<field set="infoabouttask"  read-only="true" id="bpm:priority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="whitespace" id="directive"/>
+					<field set="directive" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="directive" label-id="Постановка от назначившего задачу" id="ramecwf:directive" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set appearance="title" label-id="Результат" id="info"/>
+					<field set="info" label-id="Мой комментарий" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="info" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Выбрать исполнителей" id="chooseassignees"/>
+					<field id="ramecwf:assignees" label-id="Исполнитель(-ли)" set="chooseassignees">
+						<control template="/orgchart-picker.ftl"/>
+					</field>
+					<field id="ramecwf:groupAssignees" set="chooseassignees" label-id="Группа"/>
+					<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field id="ramecwf:performOutcomeSluZap" label-id="workflow.field.outcome" set="response">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА форма исполнителя нижнего уровня 3.1-->
+	<config evaluator="task-type" condition="ramecwf:performTopLvlMultiAssigneeTaskSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:dueDate"/>
+					<show id="bpm:priority"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="ramecwf:directive"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:performTopLvlOutcomeSluZap"/>
+				</field-visibility>
+				<appearance>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoabouttask"/>
+					<field set="infoabouttask" read-only="true" id="bpm:dueDate"/>
+					<field set="infoabouttask"  read-only="true" id="bpm:priority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="whitespace" id="directive"/>
+					<field set="directive" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="directive" label-id="Постановка от назначившего задачу" id="ramecwf:directive" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set appearance="title" label-id="Результат" id="info"/>
+					<field set="info" label-id="Мой комментарий" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="info" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+					<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field id="ramecwf:performTopLvlOutcomeSluZap" label-id="workflow.field.outcome" set="response">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА форма уведомления ответсвенного и контроллера-->
+	<config evaluator="task-type" condition="ramecwf:notifyMultiAssigneeTaskSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="bpm:dueDate"/>
+					<show id="bpm:priority"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="packageItems"/>
+				</field-visibility>
+				<appearance>
+					<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoabouttask"/>
+					<field set="infoabouttask" read-only="true" id="bpm:dueDate"/>
+					<field set="infoabouttask" read-only="true" id="bpm:priority">
+						<control template="/org/alfresco/components/form/controls/workflow/priority.ftl"/>
+					</field>
+					<set appearance="whitespace" id="directive"/>
+					<field set="directive" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="directive" id="packageItems" label-id="alvex.workflow.related-documents">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА проверка вышестоящим выполненного таска 3.2-->
+	<config evaluator="task-type" condition="ramecwf:checkMultiAssigneeTaskSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="ramecwf:directive"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="ramecwf:resultSummary"/>
+					<show id="ramecwf:resultLocalSluZap"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:checkOutcomeSluZap"/>
+				</field-visibility>
+				<appearance>
+				<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoZad"/>
+					<field set="infoZad" label-id="Постановка от назначившего задачу" id="ramecwf:directive" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="infoZad" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+				<set appearance="whitespace" id="infoZad1"/>
+					<field set="infoZad1" label-id="Информация о запущенных заданиях" id="ramecwf:resultSummary" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="infoZad1" label-id="Результат выполнения этого задания" read-only="true" id="ramecwf:resultLocalSluZap">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field id="packageItems" label-id="alvex.workflow.related-documents" set="infoZad1">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+				<set appearance="title" label-id="Результат проверки" id="mydecision"/>
+					<field set="mydecision" label-id="Резолюция" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+				<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field set="response" label-id="workflow.field.outcome" id="ramecwf:checkOutcomeSluZap">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА проверка вышестоящим делегированных тасков 3.2-->
+	<config evaluator="task-type" condition="ramecwf:totalCheckDelegatedMultiAssigneeTaskSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="ramecwf:directive"/>
+					<show id="ramecwf:summaryHistory"/>
+					<show id="ramecwf:resultSummary"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:totalCheckDelegatedOutcomeSluZap"/>
+				</field-visibility>
+				<appearance>
+				<set template="/org/alfresco/components/form/2-column-set.ftl" appearance="title" label-id="Информация о поставленной задаче" id="infoZad"/>
+					<field set="infoZad" label-id="Моя постановка задачи" id="ramecwf:directive" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="infoZad" label-id="Постановка задачи" id="ramecwf:summaryHistory" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+				<set appearance="whitespace" id="infoZad1"/>
+					<field set="infoZad1" label-id="Информация о запущенных заданиях" id="ramecwf:resultSummary" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field set="infoZad1" label-id="Результат выполнения этого задания" read-only="true" id="ramecwf:resultLocalSluZap">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field id="packageItems" label-id="alvex.workflow.related-documents" set="infoZad1">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+				<set appearance="title" label-id="Результат проверки" id="mydecision"/>
+					<field set="mydecision" label-id="Резолюция" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+				<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field set="response" label-id="workflow.field.outcome" id="ramecwf:totalCheckDelegatedOutcomeSluZap">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+	<!--БЕЗ РЕЕСТРА форма итоговой проверки ВСЕГО процесса руководителем 2.2-->
+	<config evaluator="task-type" condition="ramecwf:finalApprovementSluZap">
+		<forms>
+			<form>
+				<field-visibility>
+					<show id="ramecwf:resolution"/>
+					<show id="ramecwf:result"/>
+					<show id="packageItems"/>
+					<show id="ramecwf:summary"/>
+					<show id="ramecwf:finApprOutcomeSluZap"/>
+				</field-visibility>
+				<appearance>
+					<set appearance="title" label-id="Информация о задаче" id="infabouttask"/>
+					<field set="infabouttask" label-id="Моя резолюция" id="ramecwf:resolution" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set appearance="title" label-id="Проверка результата" id="info"/>
+					<field set="info" label-id="Комментарий ответственного исполнителя" id="ramecwf:result" read-only="true">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<field id="packageItems" label-id="alvex.workflow.related-documents" set="info">
+						<control template="/alvex-uploader.ftl">
+							<control-param name="uploadDirectory">uploads</control-param>
+							<control-param name="createUploadDirectory">true</control-param>
+						</control>
+					</field>
+					<field set="info" label-id="Результат проверки" id="ramecwf:summary">
+						<control template="/org/alfresco/components/form/controls/textarea.ftl"/>
+					</field>
+					<set id="response" appearance="title" label-id="workflow.set.response"/>
+					<field set="response" label-id="workflow.field.outcome" id="ramecwf:finApprOutcomeSluZap">
+						<control template="/org/alfresco/components/form/controls/workflow/activiti-transitions.ftl"/>
+					</field>
+				</appearance>
+			</form>
+		</forms>
+	</config>
+</alfresco-config>

@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="ramecwf:businessprocessmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.alfresco.org/model/dictionary/1.0 https://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/repository/config/alfresco/model/modelSchema.xsd">
+	<description>RAMEC-VS Business Process Model</description>
+	<author>RAMEC-VS</author>
+	<version>1.0</version>
+	<!-- Imports are required to allow references to definitions in other models -->
+	<imports>
+		<!-- Import Alfresco Dictionary Definitions -->
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+		<!-- Import Alfresco System Definitions -->
+		<import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+		<!-- Import Alfresco Content Domain Model Definitions -->
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+		<!-- Import User Model Definitions -->
+		<import uri="http://www.alfresco.org/model/user/1.0" prefix="usr"/>
+		<!-- Import Alfresco Business Process Model Definitions -->
+		<import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm"/>
+	</imports>
+	<namespaces>
+		<namespace uri="http://www.ramec.ru/model/ramecwf" prefix="ramecwf"/>
+	</namespaces>
+	<types>
+		<type name="ramecwf:submitMultiAssigneeTask">
+			<parent>bpm:startTask</parent>
+			<properties>
+				<property name="ramecwf:submitOutcome">
+					<type>d:text</type>
+					<default>Поручено к исполнению</default>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}submitOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:submitMultiAssigneeTaskSluZap">
+			<parent>ramecwf:submitMultiAssigneeTask</parent>
+		</type>
+		<type name="ramecwf:controlMultiAssigneeTask">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:dueDate">
+					<title>Срок исполнения</title>
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:controlOutcome">
+					<type>d:text</type>
+					<default>Next</default>
+					<constraints>
+						<constraint type="LIST" name="ramecwf:controlOutcomeConstraint">
+							<parameter name="allowedValues">
+								<list>
+									<value>Next</value>
+									<value>Approve</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:reassignable">
+					<default>false</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}controlOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:controlMultiAssigneeTaskSluZap">
+			<parent>ramecwf:controlMultiAssigneeTask</parent>
+		</type>
+		<!-- Задача без реестра-->
+		<type name="ramecwf:submitZadacha">
+			<parent>bpm:startTask</parent>
+			<properties>
+				<property name="ramecwf:submitZadacha">
+					<type>d:text</type>
+					<default>Поручено к исполнению</default>
+				</property>
+				<property name="ramecwf:confirmationRequiredZadacha">
+					<type>d:boolean</type>
+					<default>true</default>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}submitZadacha</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:mainAssignee</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:controller</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:submitZadachaErrorCatcher">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:submitZadachaErrorCatcher">
+					<type>d:text</type>
+					<default>Поручено к исполнению</default>
+				</property>
+				<property name="ramecwf:confirmationRequiredZadachaErrorCatcher">
+					<type>d:boolean</type>
+					<default>true</default>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}submitZadachaErrorCatcher</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:mainAssignee</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:controller</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:updateZadacha">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:updatedDueDate">
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:updateZadachaOutcome">
+					<type>d:text</type>
+					<default>Продолжить процесс</default>
+					<constraints>
+						<constraint name="ramecwf:updateZadachaOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<value>Продолжить процесс</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}updateZadachaOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:infotext</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:performTaskZadacha">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:checkerLocalZadacha">
+					<type>d:text</type>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:thisDueDate">
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:prevDueDate">
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:performTaskZadachaOutcome">
+					<type>d:text</type>
+					<default>Done</default>
+					<constraints>
+						<constraint name="ramecwf:performTaskZadachaOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Делегировать (доступно, если выбраны исполнители) -->
+									<value>Delegate</value>
+									<!-- Завершить и отправить на проверку-->
+									<value>Done</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}performTaskZadachaOutcome</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+				<aspect>ramecwf:assignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:lastPerformerTaskZadacha">
+			<parent>ramecwf:performTaskZadacha</parent>
+			<properties>
+				<property name="ramecwf:lastPerformerTaskOutcomeZadacha">
+					<type>d:text</type>
+					<default>Done</default>
+					<constraints>
+						<constraint name="ramecwf:lastPerformerTaskOutcomeZadacha" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Завершить и отправить на проверку-->
+									<value>Done</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}lastPerformerTaskOutcomeZadacha</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+				<aspect>ramecwf:assignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:notifyTaskZadacha">
+			<parent>bpm:workflowTask</parent>
+			<overrides>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:checkCurrentTaskZadacha">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:resultLocalZadacha">
+					<type>d:text</type>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:potentialReworkerZadacha">
+					<type>d:text</type>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:checkOutcomeZadacha">
+					<type>d:text</type>
+					<default>Approve</default>
+					<constraints>
+						<constraint name="ramecwf:checkOutcomeZadacha" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Утвердить-->
+									<value>Approve</value>
+									<!-- Отправить на доработку-->
+									<value>Rejected</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}checkOutcomeZadacha</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:checkBlockZadacha">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:checkBlockOutcomeZadacha">
+					<type>d:text</type>
+					<default>upstreamReview</default>
+					<constraints>
+						<constraint name="ramecwf:checkBlockOutcomeZadacha" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!--Отправить вышестоящему на проверку-->
+									<value>upstreamReview</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}checkBlockOutcomeZadacha</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:finalApprovementZadacha">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:finApprOutcomeZadacha">
+					<type>d:text</type>
+					<default>Rejected</default>
+					<constraints>
+						<constraint name="ramecwf:finApprOutcomeZadacha" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Утвердить-->
+									<value>Approve</value>
+									<!-- Отправить на доработку-->
+									<value>Rejected</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}finApprOutcomeZadacha</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:directivePack</aspect>
+				<aspect>ramecwf:assignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<!-- Задача, запускаемая из реестра-->
+		<type name="ramecwf:catchDataFromReestr">
+			<parent>bpm:startTask</parent>
+			<properties>
+				<property name="ramecwf:catchDataFromReestr">
+					<type>d:text</type>
+					<default>Поручено к исполнению</default>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}submitZadacha</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+				<aspect>ramecwf:controller</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:submitZadachaFromReestr">
+			<parent>ramecwf:submitZadachaErrorCatcher</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:stopRunningBPZadachaFromReestr">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:stopRunningBPZadachaFromReestr">
+					<type>d:text</type>
+					<default>Завершить выполнение процесса</default>
+					<constraints>
+						<constraint name="ramecwf:stopRunningBPZadachaFromReestrOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Завершить и отправить на проверку-->
+									<value>Завершить выполнение процесса</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}stopRunningBPZadachaFromReestrOutcome</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:updateZadachaFromReestr">
+			<parent>ramecwf:updateZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:performTaskZadachaFromReestr">
+			<parent>ramecwf:performTaskZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:lastPerformerTaskZadachaFromReestr">
+			<parent>ramecwf:lastPerformerTaskZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:notifyTaskZadachaFromReestr">
+			<parent>ramecwf:notifyTaskZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:checkCurrentTaskZadachaFromReestr">
+			<parent>ramecwf:checkCurrentTaskZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:checkBlockZadachaFromReestr">
+			<parent>ramecwf:checkBlockZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:finalApprovementZadachaFromReestr">
+			<parent>ramecwf:finalApprovementZadacha</parent>
+			<mandatory-aspects>
+				<aspect>ramecwf:docInfoFromReestr</aspect>
+			</mandatory-aspects>
+		</type>
+	</types>
+	<aspects>
+		<aspect name="ramecwf:assignees">
+			<associations>
+				<association name="ramecwf:assignees">
+					<title>Кому</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:groupAssignees">
+			<associations>
+				<association name="ramecwf:groupAssignees">
+					<title>Кому (группы)</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:authorityContainer</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:summarizable">
+			<properties>
+				<property name="ramecwf:summary">
+					<title>Резолюция</title>
+					<type>d:text</type>
+				</property>
+				<property name="ramecwf:summaryHistory">
+					<title>Резолюции</title>
+					<type>d:text</type>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:mainAssignee">
+			<associations>
+				<association name="ramecwf:mainAssignee">
+					<title>Ответственный исполнитель</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:controller">
+			<associations>
+				<association name="ramecwf:controller">
+					<title>Контроллер</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:initiator">
+			<associations>
+				<association name="ramecwf:initiator">
+					<source>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:docInfoFromReestr">
+			<properties>
+				<property name="ramecwf:oocomment">
+					<title>Комментарий общего отдела</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:orgcorrespondent">
+					<title>Корреспондент</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:directivePack">
+			<properties>
+				<property name="ramecwf:processResolution">
+					<title>Мой комментарий</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:prevTasksSummary">
+					<title>Инфо о на предыдущем уровне</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>true</multiple>
+				</property>
+				<property name="ramecwf:blockResolution">
+					<title>Инфо о на предыдущем уровне</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>true</multiple>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:blockResultsSum">
+			<properties>
+				<property name="ramecwf:dynamicDueDate">
+					<title>Назначить срок</title>
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:taskResult">
+					<title>Результат выполнения задания</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>true</multiple>
+				</property>
+				<property name="ramecwf:blockSummary">
+					<title>Информация о запущенных заданиях</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>true</multiple>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:infotext">
+			<properties>
+				<property name="ramecwf:infotext">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+	</aspects>
+</model>

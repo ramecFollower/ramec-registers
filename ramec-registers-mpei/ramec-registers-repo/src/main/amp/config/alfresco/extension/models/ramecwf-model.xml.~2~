@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model name="ramecwf:businessprocessmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+  
+  <description>RAMEC-VS Business Process Model</description>
+  <author>RAMEC-VS</author>
+  <version>1.0</version>
+  
+  <!-- Imports are required to allow references to definitions in other models -->
+  <imports>
+    <!-- Import Alfresco Dictionary Definitions -->
+    <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d" />
+    <!-- Import Alfresco System Definitions -->
+    <import uri="http://www.alfresco.org/model/system/1.0" prefix="sys" />
+    <!-- Import Alfresco Content Domain Model Definitions -->
+    <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm" />
+    <!-- Import User Model Definitions -->
+    <import uri="http://www.alfresco.org/model/user/1.0" prefix="usr"/>
+    <!-- Import Alfresco Business Process Model Definitions -->
+    <import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm" />
+  </imports>
+  
+  <namespaces>
+    <namespace uri="http://www.ramec.ru/model/ramecwf" prefix="ramecwf" />
+  </namespaces>
+  <constraints>
+        <constraint type="LIST" name="ramecwf:deliverywaylist">
+            <parameter name="allowedValues">
+                <list>
+                    <value>1</value>
+                    <value>2</value>
+                    <value>3</value>
+                    <value>4</value>
+                    <value>5</value>
+                </list>
+            </parameter>
+        </constraint>
+        <constraint type="LIST" name="ramecwf:settasktransitionslist">
+            <parameter name="allowedValues">
+                <list>
+                    <value>Approve</value>
+                    <value>Reject</value>
+                </list>
+            </parameter>
+        </constraint>
+        <constraint type="LIST" name="ramecwf:checktasktransitionslist">
+            <parameter name="allowedValues">
+                <list>
+                    <value>Approve</value>
+                    <value>Reject</value>
+                </list>
+            </parameter>
+        </constraint>
+        <constraint type="LIST" name="ramecwf:finalapprovementtransitionslist">
+            <parameter name="allowedValues">
+                <list>
+                    <value>Approve</value>
+                    <value>Reject</value>
+                </list>
+            </parameter>
+        </constraint>
+        <constraint type="LIST" name="ramecwf:deliverywaylist">
+            <parameter name="allowedValues">
+                <list>
+                    <value>1</value>
+                    <value>2</value>
+                    <value>3</value>
+                    <value>4</value>
+                    <value>5</value>
+                </list>
+            </parameter>
+        </constraint>
+    </constraints>
+  
+  <types>
+    <type name="ramecwf:submitMultiAssigneeTask">
+      <parent>bpm:startTask</parent>
+      <properties>
+        <property name="ramecwf:submitOutcome">
+          <type>d:text</type>
+          <default>Поручено к исполнению</default>
+        </property>
+      </properties>
+      <overrides>
+        <property name="bpm:outcomePropertyName">
+          <default>{http://www.ramec.ru/model/ramecwf}submitOutcome</default>
+        </property>
+      </overrides>
+      <mandatory-aspects>
+        <aspect>ramecwf:summarizable</aspect>
+        <aspect>ramecwf:assignees</aspect>
+        <aspect>ramecwf:groupAssignees</aspect>
+      </mandatory-aspects>
+    </type>
+    
+    <type name="ramecwf:submitMultiAssigneeTaskSluZap">
+      <parent>ramecwf:submitMultiAssigneeTask</parent>
+    </type>
+
+    <type name="ramecwf:controlMultiAssigneeTask">
+      <parent>bpm:activitiOutcomeTask</parent>
+      <properties>
+        <property name="ramecwf:dueDate">
+          <title>Срок исполнения</title>
+          <type>d:date</type>
+        </property>
+        <property name="ramecwf:controlOutcome">
+          <type>d:text</type>
+           <default>Next</default>
+          <constraints>
+            <constraint type="LIST" name="ramecwf:controlOutcomeConstraint">
+              <parameter name="allowedValues">
+                <list>
+                  <value>Next</value>
+                  <value>Approve</value>
+                </list>
+              </parameter>
+            </constraint>
+          </constraints>
+        </property>
+      </properties>
+      <overrides>
+        <property name="bpm:reassignable">
+          <default>false</default>
+        </property>
+        <property name="bpm:packageActionGroup">
+          <default>add_package_item_actions</default>
+        </property>
+        <property name="bpm:outcomePropertyName">
+          <default>{http://www.ramec.ru/model/ramecwf}controlOutcome</default>
+        </property>
+      </overrides>
+      <mandatory-aspects>
+        <aspect>ramecwf:summarizable</aspect>
+        <aspect>ramecwf:assignees</aspect>
+        <aspect>ramecwf:groupAssignees</aspect>
+      </mandatory-aspects>
+    </type>
+    
+    <type name="ramecwf:controlMultiAssigneeTaskSluZap">
+      <parent>ramecwf:controlMultiAssigneeTask</parent>
+    </type>
+    <type name="ramecwf:settask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="ramecwf:settasktransitions">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                    <constraints>
+                        <constraint ref="ramecwf:settasktransitionslist"/>
+                    </constraints>
+                </property>
+            </properties>
+            <associations/>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default>add_package_item_actions</default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_and_remove_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.org/model/dynamic-workflow/ramecwf/1.0}settasktransitions</default>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>ramecwf:regnumber</aspect>
+                <aspect>ramecwf:regdate</aspect>
+                <aspect>ramecwf:deliveryway</aspect>
+                <aspect>ramecwf:nameofdoc</aspect>
+                <aspect>ramecwf:orgcorrespondent</aspect>
+                <aspect>ramecwf:correspondentfio</aspect>
+                <aspect>ramecwf:corrnumber</aspect>
+                <aspect>ramecwf:oocomment</aspect>
+                <aspect>ramecwf:selectpeople</aspect>
+                <aspect>ramecwf:selectpeople2</aspect>
+                <aspect>ramecwf:selectcontent</aspect>
+            </mandatory-aspects>
+        </type>
+    <type name="ramecwf:performtask">
+            <parent>bpm:workflowTask</parent>
+            <properties>
+                <property name="ramecwf:headsresolution">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+                <property name="ramecwf:assigneecomm">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+            <associations>
+                <association name="ramecwf:delegate">
+                    <title>Delegate</title>
+                    <source>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+                <association name="ramecwf:selectgroup">
+                    <title>Select group</title>
+                    <source>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:authorityContainer</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default>add_package_item_actions</default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_and_remove_package_item_actions</default>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>ramecwf:correspondent</aspect>
+                <aspect>ramecwf:mycomment</aspect>
+                <aspect>ramecwf:selectcontent</aspect>
+            </mandatory-aspects>
+        </type>
+        <type name="ramecwf:checktask">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="ramecwf:headresolution">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+                <property name="ramecwf:assignee'scomments">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+                <property name="ramecwf:checktasktransitions">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                    <constraints>
+                        <constraint ref="ramecwf:checktasktransitionslist"/>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default>add_package_item_actions</default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_and_remove_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.org/model/dynamic-workflow/ramecwf/1.0}checktasktransitions</default>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>ramecwf:selectpeople</aspect>
+                <aspect>ramecwf:selectcontent</aspect>
+                <aspect>ramecwf:mycomment</aspect>
+            </mandatory-aspects>
+        </type>
+            <parent>bpm:workflowTask</parent>
+        </type>
+        <type name="ramecwf:finalapprovement">
+            <parent>bpm:activitiOutcomeTask</parent>
+            <properties>
+                <property name="ramecwf:myresolution">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+                <property name="ramecwf:assigneescomment">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+                <property name="ramecwf:mycomm">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>true</mandatory>
+                    <multiple>false</multiple>
+                </property>
+                <property name="ramecwf:finalapprovementtransitions">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                    <constraints>
+                        <constraint ref="ramecwf:finalapprovementtransitionslist"/>
+                    </constraints>
+                </property>
+            </properties>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default>add_package_item_actions</default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_and_remove_package_item_actions</default>
+                </property>
+                <property name="bpm:outcomePropertyName">
+                    <default>{http://www.alfresco.org/model/dynamic-workflow/ramecwf/1.0}finalapprovementtransitions</default>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>ramecwf:correspondent</aspect>
+                <aspect>ramecwf:selectpeople</aspect>
+            </mandatory-aspects>
+        </type>
+            <parent>bpm:workflowTask</parent>
+        </type>
+        <type name="ramecwf:start">
+            <parent>bpm:startTask</parent>
+            <overrides>
+                <property name="bpm:packageActionGroup">
+                    <default>add_package_item_actions</default>
+                </property>
+                <property name="bpm:packageItemActionGroup">
+                    <default>edit_and_remove_package_item_actions</default>
+                </property>
+            </overrides>
+            <mandatory-aspects>
+                <aspect>ramecwf:regnumber</aspect>
+                <aspect>ramecwf:regdate</aspect>
+                <aspect>ramecwf:deliveryway</aspect>
+                <aspect>ramecwf:nameofdoc</aspect>
+                <aspect>ramecwf:orgcorrespondent</aspect>
+                <aspect>ramecwf:correspondentfio</aspect>
+                <aspect>ramecwf:corrnumber</aspect>
+                <aspect>ramecwf:oocomment</aspect>
+                <aspect>ramecwf:selectpeople</aspect>
+                <aspect>ramecwf:selectpeople2</aspect>
+                <aspect>ramecwf:selectcontent</aspect>
+            </mandatory-aspects>  
+  </types>
+  
+  <aspects>
+    <aspect name="ramecwf:assignees">
+      <associations>
+        <association name="ramecwf:assignees">
+          <title>Кому</title>
+          <source>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>cm:person</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </association>
+      </associations>
+    </aspect>
+    <aspect name="ramecwf:groupAssignees">
+      <associations>
+        <association name="ramecwf:groupAssignees">
+          <title>Кому (группы)</title>
+          <source>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>cm:authorityContainer</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </association>
+      </associations>
+    </aspect>
+    <aspect name="ramecwf:summarizable">
+      <properties>
+        <property name="ramecwf:summary">
+          <title>Резолюция</title>
+          <type>d:text</type>
+        </property>
+        <property name="ramecwf:summaryHistory">
+          <title>Резолюции</title>
+          <type>d:text</type>
+        </property>
+      </properties>
+    </aspect>
+	 <aspect name="ramecwf:oocomment">
+            <properties>
+                <property name="ramecwf:oocomment">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:selectpeople">
+            <associations>
+                <association name="ramecwf:selectpeople">
+                    <title>Select people</title>
+                    <source>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+        <aspect name="ramecwf:deliveryway">
+            <properties>
+                <property name="ramecwf:deliveryway">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                    <constraints>
+                        <constraint ref="ramecwf:deliverywaylist"/>
+                    </constraints>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:mycomment">
+            <properties>
+                <property name="ramecwf:mycomment">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>true</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:selectcontent">
+            <associations>
+                <association name="ramecwf:selectcontent">
+                    <title>Select content</title>
+                    <source>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:content</class>
+                        <mandatory>false</mandatory>
+                        <many>true</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+        <aspect name="ramecwf:nameofdoc">
+            <properties>
+                <property name="ramecwf:nameofdoc">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>true</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:corrnumber">
+            <properties>
+                <property name="ramecwf:corrnumber">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:selectpeople2">
+            <associations>
+                <association name="ramecwf:selectpeople2">
+                    <title>Select people2</title>
+                    <source>
+                        <mandatory>true</mandatory>
+                        <many>false</many>
+                    </source>
+                    <target>
+                        <class>cm:person</class>
+                        <mandatory>false</mandatory>
+                        <many>false</many>
+                    </target>
+                </association>
+            </associations>
+        </aspect>
+        <aspect name="ramecwf:correspondentfio">
+            <properties>
+                <property name="ramecwf:correspondentfio">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:correspondent">
+            <properties>
+                <property name="ramecwf:correspondent">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:regnumber">
+            <properties>
+                <property name="ramecwf:regnumber">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>true</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:regdate">
+            <properties>
+                <property name="ramecwf:regdate">
+                    <type>d:date</type>
+                    <protected>false</protected>
+                    <mandatory>true</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+        </aspect>
+        <aspect name="ramecwf:orgcorrespondent">
+            <properties>
+                <property name="ramecwf:orgcorrespondent">
+                    <type>d:text</type>
+                    <protected>false</protected>
+                    <mandatory>false</mandatory>
+                    <multiple>false</multiple>
+                </property>
+            </properties>
+  </aspects>
+</model>

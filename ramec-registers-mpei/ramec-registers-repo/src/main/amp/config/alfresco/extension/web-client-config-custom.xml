@@ -1,0 +1,7 @@
+<alfresco-config>
+  <config>
+    <client>
+      <allow-user-script-execute>true</allow-user-script-execute> 
+    </client>
+  </config>
+</alfresco-config>

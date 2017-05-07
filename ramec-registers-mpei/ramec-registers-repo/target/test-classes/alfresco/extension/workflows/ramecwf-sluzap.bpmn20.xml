@@ -1,0 +1,2241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="ramec-sluzap-parallel" name="Задача" isExecutable="true">
+    <startEvent id="Startevent1" name="Создание задачи" activiti:formKey="ramecwf:setMultiAssigneeTaskSluZap"></startEvent>
+    <serviceTask id="alfrescoScripttask1" name="Подготовка списка" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <documentation>Разбираем введённые группы по пользователям, добавляем индивидуальных исполнителей, формируем общий список.</documentation>
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:string><![CDATA[var mA0 = execution.getVariable("ramecwf_mainAssignee");
+logger.warn("Проверка уровень 0 отв.исполнитель="+ramecwf_mainAssignee);
+var ppl = execution.getVariable("ramecwf_assignees");
+logger.warn("Проверка уровень 0 исполнители ="+ramecwf_assignees);
+
+var usrs = new java.util.ArrayList();
+var kinds = new java.util.ArrayList();
+var authList = new java.util.ArrayList();
+						
+							for (var i = 0; i < ppl.size(); i++)
+							{
+								var name = ramecwf_assignees.get(i).properties.userName;
+								usrs.add(name);
+								authList.add(name);
+							}
+						logger.warn("Проверка уровень 0 usrs1="+usrs);
+					
+					if (typeof ramecwf_mainAssignee != 'undefined'){
+						var main = ramecwf_mainAssignee.properties.userName;
+						logger.warn("Проверка уровень 0 main="+main);
+						kinds.add('main');
+						authList.add(main);
+						}
+						
+					if (typeof ramecwf_controller != 'undefined'){
+						var controller = ramecwf_controller.properties.userName;
+						logger.warn("Проверка уровень 0 controller="+controller);
+						kinds.add('assist');
+						authList.add(controller);
+						}
+						
+						kinds.add('perform');
+						logger.warn("Проверка уровень 0 kinds1="+kinds);
+						
+						var head0 = initiator.properties.userName;
+								authList.add(head0);
+						var headName = personFullName(head0);
+						
+var grpId = workflowinstanceid;
+logger.warn("lvl 0 authList= "+authList);
+for (var i=0; i< authList.size(); i++){
+	var toUserMail = authList.get(i);
+	logger.warn("lvl 0 toUserMail= "+toUserMail);
+if (toUserMail) {
+  toUserMail = people.getPerson(toUserMail);
+  logger.warn("lvl 0 toUserMail= "+toUserMail);
+  if (toUserMail) {
+    var auth = groups.getGroup(grpId);
+    /* Добавляем активити-группу, если её ещё нет */
+    if (!auth) { auth = groups.createRootGroup(grpId, grpId); }
+    /* Добавляем пользователя этой задачи в активити-группу */
+    if (auth && !auth.allUsers.filter(function (elt) { return elt.userName.equals(toUserMail.properties.userName); }).length) {
+      auth.addAuthority(toUserMail.properties.userName); 
+		logger.log("lvl0 auth= "+auth);
+    }
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId; logger.log("grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }
+  }
+}}						
+						
+						
+execution.setVariable("authList", authList);						
+						
+logger.warn("Проверка уровень 0 исполнитель="+ramecwf_assignees);
+execution.setVariable("ramecwf_mainAssignee", main);
+execution.setVariable("ramecwf_controller", controller);
+
+
+function personFullName(pers) {
+  if (!pers.properties) {
+  pers = people.getPerson(pers);
+  }
+  if (!pers.properties) { return pers; }
+  var fname = pers.properties.lastName;
+  if (fname) { fname = fname + ' '; }
+  var f = pers.properties.firstName;
+  if (f) { fname = fname + f; }
+  return fname;
+}
+
+
+
+var resolut = execution.getVariable("ramecwf_resolution");
+var fullResolution = headName +": "+resolut;
+
+execution.setVariable("ramecwf_assignees", new java.util.ArrayList);
+execution.setVariable("ramecwf_resolution", fullResolution);
+execution.setVariable("ramecwf_directive", fullResolution);
+			logger.warn("Проверка уровень 0 резолюция="+fullResolution);
+			logger.warn("Проверка уровень 0 otvetst исполнитель="+ramecwf_mainAssignee);
+
+execution.setVariable("infosAboutTask", '');
+execution.setVariable("infosAboutTaskLvl2", '');
+
+execution.setVariable("bpm_workflowDueDate", execution.getVariable("bpm_workflowDueDate"));
+
+		logger.warn("КОЛ-ВО ДОКОВ 21="+bpm_package.children.length);
+
+var sumHist = "Резолюция руководителя процесса ("+ headName
+ +"): " + ramecwf_resolution + '\n';
+execution.setVariable("ramecwf_summaryHistory", sumHist);
+
+execution.setVariable("users2assign", usrs);
+				logger.warn("Проверка уровень 0 исполнители="+usrs);
+execution.setVariable("usersCount", usrs.size());
+
+execution.setVariable('ramecwf_performers', usrs);
+execution.setVariable('ramecwf_subprocessKinds', kinds);
+
+
+execution.setVariable("allDone", "false");
+
+var informAboutTask = "";
+for (  var k = 0; k < usrs.size(); k++) {
+  var fullName = personFullName(usrs.get(k)); 
+
+		logger.warn("create bp lvl 01 event=create fullName" +fullName);
+						logger.warn("!!!!!!!!!! Инициализация данных о задании ");
+			if (fullName) {
+							var taskSum = fullName + ': ' + "Пока нет комментариев; Статус выполнения: Ещё не начато";
+						}
+						informAboutTask = informAboutTask + taskSum + ";" + "\t";
+							logger.warn("create bp lvl 01 event=create" + '/n' + "!!!!!!!!!! Данные о задании " +  k + "  " + taskSum);
+							logger.warn("create bp lvl 01 event=create" + '/n' + "!!!!!!!!!! Данные о задании " + k +"  "  + informAboutTask);
+}						
+
+//информация о задаче
+  var totalFormatinfosAboutTask = formatResComments(informAboutTask);
+  
+/*информация о запущенных на первом уровне тасках*/					
+    execution.setVariable("infosAboutTask", totalFormatinfosAboutTask);
+		logger.warn("Проверка уровень 01 31 event=create-----------totalFormatinfosAboutTask=" + totalFormatinfosAboutTask);
+
+
+  /*	ФУНКЦИИ	*/
+function personFullName(pers) {
+  if (!pers.properties) {
+  pers = people.getPerson(pers);
+  }
+  if (!pers.properties) { return pers; }
+  var fname = pers.properties.lastName;
+  if (fname) { fname = fname + ' '; }
+  var f = pers.properties.firstName;
+  if (f) { fname = fname + f; }
+  return fname;
+}
+
+function statRus(stat1){	
+	if (stat1 == "Not Yet Started") {
+      var stats = "Ещё не начато";
+} else if (stat1 == "In Progress") {
+          stats = "В работе";
+} else if (stat1 == "Completed"){
+		stats = "Выполнено;";
+}
+return stats;
+}
+
+  /*	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	*/
+function formatResComments(commentsString) {
+    /*формирование массива с комментами из полученной строки */	
+      var newRTCarr = [];
+      var comStr = String(commentsString);
+			logger.warn("-----comStr " + comStr);
+    /*разбивка строки на массив*/			
+      var newRTCarr = commentsString.split("\t");
+			logger.warn("КОЛ-ВО неформатированных комментариев " + newRTCarr.length);
+    /*сформировать новую строку с переносом строк*/		
+      var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+
+/*функция для изменения коммента в таске вышестоящего*/
+function updReviewerTask(newTaskProp, reviewerTaskID){
+				logger.warn("lvl0 31 upd totalCheck start");
+	var wf = workflow.getInstance(workflowinstanceid);
+				logger.warn(wf);
+	var tsk = workflow.getTask(reviewerTaskID);
+				logger.warn(tsk);
+	var ca = tsk.getProperties();
+				logger.log(tsk.getProperties());
+	var ab = tsk.properties["ramecwf:resultSummary"];
+				logger.warn("--------------"+ab);
+
+	ca["ramecwf:resultSummary"] = newTaskProp;
+	tsk.setProperties(ca);
+				logger.warn(tsk.properties["ramecwf:resultSummary"]);
+				logger.warn("lvl0 31 upd totalCheck completed" + newTaskProp);
+return;
+}]]></activiti:string>
+        </activiti:field>
+        <activiti:field name="runAs">
+          <activiti:string><![CDATA[admin]]></activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow1" sourceRef="Startevent1" targetRef="alfrescoScripttask1"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="alfrescoScripttask1" targetRef="exclusivegateway1"></sequenceFlow>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow4" name="Исполнители не назначены" sourceRef="exclusivegateway1" targetRef="endevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${usersCount <= 0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow12" sourceRef="exclusivegateway1" targetRef="subprocess1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${usersCount >0}]]></conditionExpression>
+    </sequenceFlow>
+    <subProcess id="subprocess1" name="Задача, назначенная руководителем ">
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${ramecwf_subprocessKinds}" activiti:elementVariable="ramecwf_subprocessKind">
+        <completionCondition>${allDone == 'true'}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+      <startEvent id="PerfomingStartevent" name="Start"></startEvent>
+      <sequenceFlow id="flow24" sourceRef="PerfomingStartevent" targetRef="exclusivegateway5"></sequenceFlow>
+      <exclusiveGateway id="exclusivegateway5" name="Exclusive Gateway"></exclusiveGateway>
+      <sequenceFlow id="flow25" sourceRef="exclusivegateway5" targetRef="notifyTask">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_subprocessKind == 'assist'}]]></conditionExpression>
+      </sequenceFlow>
+      <userTask id="notifyTask" name="Уведомление о задаче" activiti:assignee="${ramecwf_controller}" activiti:formKey="ramecwf:notifyMultiAssigneeTaskSluZap">
+        <extensionElements>
+          <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+            <activiti:field name="script">
+              <activiti:string><![CDATA[logger.warn("NOTIFICATION CREATED");
+if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+var fullNames = "";
+var fNameK = execution.getVariable("users2assign");
+logger.warn("type fNameK " + typeof(fNameK) + "	" + fNameK);
+var fnameSt = fNameK.toArray();
+logger.warn("fnameSt " + fnameSt);
+for (var i = 0; i < fnameSt.length; i++) {
+    logger.warn("fnameSt " + fnameSt[i]);
+    fullNames += personFullName(fnameSt[i]) + "; ";
+    logger.warn("notification fullNames= " + fullNames);
+}
+var docName = execution.getVariable("bpm_workflowDescription");
+var head0 = initiator.properties.userName;
+var head = personFullName(head0);
+var resolut = execution.getVariable("ramecwf_resolution");
+var sHist0 = "Вы назначены ответственным исполнителем процесса \"" + docName + "\"\n" + "____________\n" + "Руководитель: " + head + "\n" + "\n" + "Резолюция руководителя: " + resolut + "\n" + "____________\n" + "Исполнители, назначенные руководителем: \n" + fullNames;
+task.setVariableLocal('ramecwf_summaryHistory', sHist0);]]></activiti:string>
+            </activiti:field>
+          </activiti:taskListener>
+        </extensionElements>
+      </userTask>
+      <sequenceFlow id="flow26" sourceRef="notifyTask" targetRef="inclusivegateway3"></sequenceFlow>
+      <subProcess id="subprocess4" name="Sub Process">
+        <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${users2assign}" activiti:elementVariable="usrs"></multiInstanceLoopCharacteristics>
+        <exclusiveGateway id="exclusivegateway3" name="Exclusive Gateway"></exclusiveGateway>
+        <sequenceFlow id="flow6" sourceRef="exclusivegateway3" targetRef="exclusivegateway7">
+          <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_performOutcomeSluZap == 'Done'}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="flow14" sourceRef="exclusivegateway3" targetRef="subprocess2">
+          <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_performOutcomeSluZap == 'Delegate'}]]></conditionExpression>
+        </sequenceFlow>
+        <userTask id="checkTask0" name="Проверить задачу" activiti:assignee="${ramecwf_mainAssignee}" activiti:formKey="ramecwf:checkMultiAssigneeTaskSluZap">
+          <extensionElements>
+            <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+              <activiti:field name="script">
+                <activiti:string><![CDATA[logger.warn("Проверка уровень 01 32 event=complete-----------COMPLETE STARTED");
+			logger.warn("КОЛ-ВО ДОКОВ 32 lvl1 complete="+bpm_package.children.length);			  
+var sHist = execution.getVariable('ramecwf_summaryHistory');
+var sLocal = task.getVariableLocal('ramecwf_summary');
+
+var potReworker = execution.getVariable("potentialReworker");
+execution.setVariableLocal("potentialReworker", execution.getVariable("potentialReworker"));
+		logger.warn("Проверка уровень 01 32 event=complete----potentialReworker "+ potReworker);
+
+var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+if (taskDueDate) execution.setVariable('bpm_workflowDueDate', taskDueDate);
+
+function formatISO(dt) {
+  var yy = dt.getYear() + 1900;
+  yy = yy + '-';
+  var mm = (dt.getMonth() + 1).toString();
+  mm = (mm < 10 ? '0' + mm : mm) + '-';
+  var dd = dt.getDate().toString();
+  dd = (dd < 10 ? '0' + dd : dd);
+  return(yy + mm + dd);
+}
+
+function personFullName(pers) {
+  if (!pers.properties) {
+  pers = people.getPerson(pers);
+  }
+  if (!pers.properties) { return pers; }
+  var fname = pers.properties.lastName;
+  if (fname) { fname = fname + ' '; }
+  var f = pers.properties.firstName;
+  if (f) { fname = fname + f; }
+  return fname;
+}
+
+function updResComments(commentsString){
+//формирование массива с комментами
+	var newRTCarr = [];
+	var comStr = String(commentsString);
+		logger.warn("-----comStr " + comStr);
+	var RTCarr = commentsString.split("\t");
+		logger.warn("RTCarr.length  "+RTCarr.length);
+	//перебор комментов
+		for (var i = 0; i < RTCarr.length; i++) {
+			//если в комменте есть имя проверяемого - добавляем результат проверки
+				if (~RTCarr[i].indexOf(workerFName)) {
+						logger.warn("OLD RTCarr  "+RTCarr[i]);
+					newRTCarr[i] = RTCarr[i] + " " + headReq;
+						logger.warn("Changed newRTCarr  "+newRTCarr[i]);
+			}
+	//если нет, то оставляем всё как есть
+				else {newRTCarr[i] = RTCarr[i];}
+	var checkvar = newRTCarr[i];
+	logger.warn("checkvar----  " + i + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+}
+var infosAboutTasks = newRTCarr.join("\t");
+return infosAboutTasks;
+}
+
+var worker = execution.getVariable("ramecwf_potentialReworkerLocalSluZap");
+var workerFName = personFullName(worker);
+
+var checker = task.assignee;
+var fullName = personFullName(checker);
+	execution.setVariable('ramecwf_checkOutcomeSluZap', task.getVariableLocal('ramecwf_checkOutcomeSluZap'));
+
+if(task.getVariableLocal('ramecwf_checkOutcomeSluZap') == 'Approve') {
+		execution.setVariable("ramecwf_summary", sLocal);
+		task.setVariable("ramecwf_summary", sLocal);
+	var res = sHist +"/n"+ "Оценка результата: " + sLocal;
+//		execution.setVariable('ramecwf_summaryHistory', ramecwf_summary);
+		execution.setVariable('ramecwf_summary', '');
+	var headReq = " (принято)";
+	}
+
+
+if(task.getVariableLocal('ramecwf_checkOutcomeSluZap') == 'Rejected') {
+				logger.warn("Проверка уровень 01 32 event=complete-----------Rejected DEFINED");
+	execution.setVariable("ramecwf_directive", sLocal);
+
+		logger.warn("Проверка уровень 01 32 event=complete-----------checkerFName  "+fullName);
+
+  if (fullName) { sLocal = fullName + ': ' + sLocal + "; (возвращено на доработку)"; }
+		logger.warn("Проверка уровень 01 32 event=complete-----------new sLocal  "+sLocal);
+  
+  if (taskDueDate) { sLocal = sLocal + ', исправить к: ' + formatISO(taskDueDate); }
+  	execution.setVariable("ramecwf_directive", sLocal);
+	execution.setVariable('ramecwf_summary', '');
+	execution.setVariable("user2assign", worker);
+	task.setVariable("ramecwf_summary", sLocal);
+	
+	 headReq = " (возвращено на доработку)";
+	}
+
+	//вписали результат при создании таска
+			var newinfosAboutTask = updResComments(infosAboutTask);
+				execution.setVariable("infosAboutTask", newinfosAboutTask);
+	//ВСТАВИТЬ ФОРМАТИРОВАНИЕ И ИЗМЕНЕНИЕ ВЫШЕСТОЯЩЕГО					
+						logger.warn("Проверка уровень 01 31 event=complete-----------newinfosAboutTask=" + newinfosAboutTask);
+
+						formatResComments(newinfosAboutTask);
+						  var reviewerTaskID = execution.getVariable("reviewerTaskIDLvl1");
+						  updReviewerTask(newinfosAboutTask, reviewerTaskID);
+						
+  /*	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	*/
+function formatResComments(commentsString) {
+    /*формирование массива с комментами из полученной строки */	
+      var newRTCarr = [];
+      var comStr = String(commentsString);
+			logger.warn("-----comStr " + comStr);
+    /*разбивка строки на массив*/			
+      var newRTCarr = commentsString.split("\t");
+			logger.warn("КОЛ-ВО неформатированных комментариев " + newRTCarr.length);
+    /*сформировать новую строку с переносом строк*/		
+      var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+
+/*функция для изменения коммента в таске вышестоящего*/
+function updReviewerTask(newTaskProp, reviewerTaskID){
+				logger.warn("lvl0 31 upd totalCheck start");
+	var wf = workflow.getInstance(workflowinstanceid);
+				logger.warn(wf);
+	var tsk = workflow.getTask(reviewerTaskID);
+				logger.warn(tsk);
+	var ca = tsk.getProperties();
+				logger.log(tsk.getProperties());
+	var ab = tsk.properties["ramecwf:resultSummary"];
+				logger.warn("--------------"+ab);
+
+	ca["ramecwf:resultSummary"] = newTaskProp;
+	tsk.setProperties(ca);
+				logger.warn(tsk.properties["ramecwf:resultSummary"]);
+				logger.warn("lvl0 31 upd totalCheck completed" + newTaskProp);
+return;
+}										
+						logger.warn("Проверка уровень 01 32 event=complete-----------COMPLETE COMPLETE");]]></activiti:string>
+              </activiti:field>
+              <activiti:field name="runAs">
+                <activiti:string><![CDATA[admin]]></activiti:string>
+              </activiti:field>
+            </activiti:taskListener>
+            <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+              <activiti:field name="script">
+                <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+logger.warn("КОЛ-ВО ДОКОВ 31 lvl1 create="+bpm_package.children.length);
+var res = execution.getVariable('ramecwf_result');
+
+var potReworker = execution.getVariable("potentialReworker");
+execution.setVariableLocal("ramecwf_potentialReworkerLocalSluZap", potReworker);
+
+var res1 = task.setVariableLocal('ramecwf_resultSummary', execution.getVariable("infosAboutTask"));
+			logger.warn("Проверка уровень 01 32 event=create-----------result TYPE=" + typeof(res1));
+execution.setVariable("infosAboutTask", infosAboutTask);
+
+task.setVariableLocal('ramecwf_resultLocalSluZap', execution.getVariable('ramecwf_taskSummary'));
+			logger.warn("Проверка уровень 01 32 event=create-----------summTask");
+task.setVariable('ramecwf_resolution', execution.getVariable('ramecwf_resolution'));
+			logger.warn("Проверка уровень 01 32 event=create-----------resolut");
+task.setVariable('ramecwf_summary', '');]]></activiti:string>
+              </activiti:field>
+              <activiti:field name="runAs">
+                <activiti:string><![CDATA[admin]]></activiti:string>
+              </activiti:field>
+            </activiti:taskListener>
+          </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow7" sourceRef="checkTask0" targetRef="exclusivegateway2"></sequenceFlow>
+        <userTask id="performTask0" name="Задача" activiti:assignee="${user2assign}" activiti:formKey="ramecwf:performMultiAssigneeTaskSluZap">
+          <documentation>Работа с поручением, изменение состава материалов, передача поручения для дальнейшего исполнения.</documentation>
+          <extensionElements>
+            <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+              <activiti:field name="script">
+                <activiti:string><![CDATA[logger.warn("Проверка уровень 01 31 event=create--------CREATED");	
+				logger.warn("КОЛ-ВО ДОКОВ 31 CREATE="+bpm_package.children.length);		  
+if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+
+var checkThisTask0 = execution.getVariable("ramecwf_assigneeHead");
+		logger.warn("Проверка уровень 01 31 event=create--------checkerAss "+checkThisTask0);
+var checkThisTask = String(checkThisTask0);
+execution.setVariableLocal("ramecwf_checkerLocalSluZap", checkThisTask);
+execution.setVariable("nextTaskChecker", checkThisTask);
+logger.warn("Проверка уровень 01 31 event=create--------nextTaskChecker "+checkThisTask);
+
+  var sHist0 = task.setVariableLocal('ramecwf_summaryHistory', ramecwf_summaryHistory);
+task.setVariableLocal('ramecwf_directive', execution.getVariable("ramecwf_directive"));
+	logger.warn("Проверка уровень 01 31 event=create----sHist"+sHist0);
+	logger.warn("Проверка уровень 01 31 event=create резолюция="+ramecwf_resolution);
+
+var revTaskID = execution.getVariable("reviewerTaskID");
+	execution.setVariableLocal("reviewerTaskID", revTaskID);
+		logger.warn("performtask_lvl0 reviewerTaskID = " + revTaskID);
+		
+task.setVariableLocal('ramecwf_performOutcomeSluZap', 'Done')		
+
+task.setVariable('ramecwf_summary', '');
+
+		logger.warn("performtask_lvl0 create completed");]]></activiti:string>
+              </activiti:field>
+              <activiti:field name="runAs">
+                <activiti:string><![CDATA[admin]]></activiti:string>
+              </activiti:field>
+            </activiti:taskListener>
+            <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+              <activiti:field name="script">
+                <activiti:string><![CDATA[var sHist = execution.getVariable('ramecwf_summaryHistory');
+  var sLocal = task.getVariableLocal('ramecwf_summary');
+logger.warn("Проверка уровень 01 31 event=complete Комментарий=" + sLocal);
+logger.warn("КОЛ-ВО ДОКОВ 31 lvl1 complete=" + bpm_package.children.length);
+  var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+  if (taskDueDate) execution.setVariable('bpm_workflowDueDate', taskDueDate);
+  var fNameStr = "";
+  var informAboutTask = "";	
+task.setVariable('ramecwf_resultSummary', "");
+execution.setVariable('ramecwf_performOutcomeSluZap', task.getVariableLocal('ramecwf_performOutcomeSluZap'));
+
+if (sLocal) {
+    var fullName = personFullName(task.assignee);
+    if (fullName) {
+        sLocal = fullName + ': ' + sLocal;
+    }
+}
+
+if (task.getVariableLocal('ramecwf_performOutcomeSluZap') == 'Done') {
+		logger.warn("Проверка уровень 01 31 event=complete sLocal=" + sLocal);
+    execution.setVariable("ramecwf_result", sLocal);
+		logger.warn("Проверка уровень 01 31 event=complete TYPE ramecwf_result =" + typeof(ramecwf_result));
+    var stat = task.getVariable("bpm_status");
+		logger.warn("Проверка уровень 01 31 event=complete ------status " + stat);
+    var stat0 = String(stat);
+    var statRu = statRus(stat0);
+    var taskSum = sLocal + " Статус выполнения: " + statRu;
+    var potentialReworker = task.assignee;
+    execution.setVariable("potentialReworker", potentialReworker);
+}
+if (task.getVariableLocal('ramecwf_performOutcomeSluZap') == 'Delegate') {
+    execution.setVariable("ramecwf_assigneeHead", task.assignee);
+    if (taskDueDate) {
+        sLocal = sLocal + ', выполнить к: ' + formatISO(taskDueDate);
+    }
+    sHist = ((sHist && sHist.length) ? sHist + '\n' : '') + (sLocal ? sLocal : '');
+		execution.setVariable('ramecwf_summaryHistory', sHist);
+			logger.warn("Проверка уровень 01 31 event=complete -----31 sHist" + sHist);
+    
+	execution.setVariable("ramecwf_directive", sLocal);
+	var authList = execution.getVariable("authList");
+    
+	taskSum = sLocal + " Статус выполнения: " + "Делегировано";
+    
+	var ppl1 = task.getVariableLocal("ramecwf_assignees");
+    logger.warn("Проверка уровень 01 31 event=complete исполнитель=" + ppl1);
+    var size = ppl1.size();
+    logger.warn("Проверка уровень 01 31 event=complete kolvo=" + size);
+    var names1 = new java.util.ArrayList();
+    var kinds1 = new java.util.ArrayList();
+    var subKinds1 = new java.util.ArrayList();
+    
+	kinds1.add('checkDelegated');
+    kinds1.add('perform');
+   
+   for (var i = 0; i < size; i++) {
+          var name1 = ppl1.get(i).properties.userName;
+					logger.warn("Проверка уровень 01 31 event=complete-------" + ppl1.get(i).properties.userName);
+			  names1.add(name1);
+			  authList.add(name1);
+					logger.warn("Проверка уровень 01 31 event=complete-------------" + i + "    " + name1);
+				subKinds1.add('perform');
+        var prsFName = personFullName(name1);
+        fNameStr = fNameStr + prsFName + ";";
+        logger.warn(" 01 31 event=complete-----fNameStr" + i + "    " + fNameStr);
+		          var infTask = prsFName + ': ' + "Пока нет комментариев; Статус выполнения: Ещё не начато";
+              informAboutTask = informAboutTask + infTask + ";" + "\t";
+							logger.warn("perform bp lvl 01 event=create" + '/n' + "!!!!!!!!!! Данные о задании   " + infTask);
+							logger.warn("perform bp lvl 01 event=create" + '/n' + "!!!!!!!!!! Данные о задании   "  + informAboutTask);
+    }
+	/*информация о запущенных на втором уровне тасках*/
+	informAboutTask = formatResComments(informAboutTask);	
+    execution.setVariable("infosAboutTaskLvl2", informAboutTask);
+		logger.warn("Проверка уровень 01 31 event=create-----------informAboutTask=" + informAboutTask);
+		
+    execution.setVariable("users2assigned", names1);
+    execution.setVariable("fNameStr", fNameStr);
+    logger.warn("Проверка уровень 01 31 event=complete-------------" + names1 + " typeof(names1) " + typeof(names1));
+    execution.setVariable('ramecwf_subprocessKinds1', kinds1);
+    execution.setVariable('ramecwf_subSubprocessKinds1', subKinds1);
+    execution.setVariable('ramecwf_performers', names1);
+    var checker = task.assignee;
+    execution.setVariable("ramecwf_assigneeHead", checker);
+    logger.warn("Проверка уровень 01 31 event=complete cheker-------" + checker);
+	execution.setVariable("fullNameList", execution.getVariable("fNameStr"));
+}
+// 	ОБЩЕЕ ПРИ ЛЮБОМ ИСХОДЕ
+
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив			
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк		
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+
+//результат задачи
+execution.setVariable("ramecwf_taskSummary", taskSum);
+
+//получили инфу об актуальном состоянии задачи		
+  var res0 = execution.getVariable('ramecwf_taskSummary');
+  var res1 = String(res0);
+		logger.warn("Проверка уровень 01 31 event=complete---result=" + res1 + "---result TYPE=" + typeof(res1));
+
+//получили инфу о всех тасках			
+  var infosAboutTask = execution.getVariable("infosAboutTask");	
+		logger.warn("Проверка уровень 01 31 event=complete-----------infosAboutTask=" + infosAboutTask);
+
+//вписали результат при создании таска			
+  var newinfosAboutTask = getNewResComments(infosAboutTask);	
+		logger.warn("Проверка уровень 01 31 event=complete-----------newinfosAboutTask=" + newinfosAboutTask);
+  var totalFormatinfosAboutTask = formatResComments(newinfosAboutTask);
+
+//сумма результатов					
+task.setVariable('ramecwf_resultSummary', totalFormatinfosAboutTask);
+
+//информация о задаче
+var revTaskID = execution.getVariable("reviewerTaskID");
+		logger.warn("performtask_lvl0 reviewerTaskID = " + revTaskID);
+					
+execution.setVariable("infosAboutTask", totalFormatinfosAboutTask);
+updReviewerTask(totalFormatinfosAboutTask, revTaskID);
+
+execution.setVariable('ramecwf_summary', '');
+
+
+var grpId = workflowinstanceid;
+logger.warn("lvl0 perform task  authList= "+authList);
+for (var i=0; i< authList.size(); i++){
+	var toUserMail = authList.get(i);
+	logger.warn("lvl 0 toUserMail= "+toUserMail);
+if (toUserMail) {
+  toUserMail = people.getPerson(toUserMail);
+  logger.warn("lvl 0 toUserMail= "+toUserMail);
+  if (toUserMail) {
+    var auth = groups.getGroup(grpId);
+    /* Добавляем активити-группу, если её ещё нет */
+    if (!auth) { auth = groups.createRootGroup(grpId, grpId); }
+    /* Добавляем пользователя этой задачи в активити-группу */
+    if (auth && !auth.allUsers.filter(function (elt) { return elt.userName.equals(toUserMail.properties.userName); }).length) {
+      auth.addAuthority(toUserMail.properties.userName); 
+		logger.log("lvl0 auth= "+auth);
+    }
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId; logger.log("grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }
+  }
+}}						
+
+function formatISO(dt) {
+    var yy = dt.getYear() + 1900;
+    yy = yy + '-';
+    var mm = (dt.getMonth() + 1).toString();
+    mm = (mm < 10 ? '0' + mm : mm) + '-';
+    var dd = dt.getDate().toString();
+    dd = (dd < 10 ? '0' + dd : dd);
+    return (yy + mm + dd);
+}
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+
+function statRus(stat1) {
+    if (stat1 == "Not Yet Started") {
+        var stats = "Ещё не начато";
+    } else if (stat1 == "In Progress") {
+        stats = "В работе";
+    } else if (stat1 == "Completed") {
+        stats = "Выполнено;";
+    }
+    return stats;
+}
+
+function getNewResComments(commentsString) {
+    //формирование массива с комментами	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    var RTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    //перебор комментов		
+    for (var i = 0; i < RTCarr.length; i++) {
+        //замена коммента на новый
+        if (~RTCarr[i].indexOf(fullName)) {
+            logger.warn("OLD RTCarr  " + RTCarr[i]);
+            newRTCarr[i] = taskSum;
+            logger.warn("Changed newRTCarr  " + newRTCarr[i]);
+        }
+        //если юзер != таск.испольнитель, то оставляем всё как есть		
+        else {
+            newRTCarr[i] = RTCarr[i];
+        }
+        var checkvar = newRTCarr[i];
+        logger.warn("checkvar----  " + i + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+    }
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+
+/*функция для изменения коммента в таске вышестоящего*/
+function updReviewerTask(newTaskProp, reviewerTaskID){
+				logger.warn("lvl0 31 upd totalCheck start");
+	var wf = workflow.getInstance(workflowinstanceid);
+				logger.warn(wf);
+	var tsk = workflow.getTask(reviewerTaskID);
+				logger.warn(tsk);
+	var ca = tsk.getProperties();
+				logger.log(tsk.getProperties());
+	var ab = tsk.properties["ramecwf:resultSummary"];
+				logger.warn("--------------"+ab);
+
+	ca["ramecwf:resultSummary"] = newTaskProp;
+	tsk.setProperties(ca);
+				logger.warn(tsk.properties["ramecwf:resultSummary"]);
+				logger.warn("lvl0 31 upd totalCheck completed" + newTaskProp);
+return;
+}]]></activiti:string>
+              </activiti:field>
+              <activiti:field name="runAs">
+                <activiti:string><![CDATA[admin]]></activiti:string>
+              </activiti:field>
+            </activiti:taskListener>
+          </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow13" sourceRef="performTask0" targetRef="exclusivegateway3"></sequenceFlow>
+        <exclusiveGateway id="exclusivegateway7" name="Exclusive Gateway"></exclusiveGateway>
+        <sequenceFlow id="flow29" sourceRef="exclusivegateway7" targetRef="checkTask0"></sequenceFlow>
+        <subProcess id="subprocess2" name="Делегированная исполнителем задача">
+          <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${ramecwf_subprocessKinds1}" activiti:elementVariable="ramecwf_subprocessKind1"></multiInstanceLoopCharacteristics>
+          <startEvent id="startevent2" name="Start"></startEvent>
+          <sequenceFlow id="flow17" sourceRef="inclusivegateway1" targetRef="subprocess3">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_subprocessKind1 == 'perform'}]]></conditionExpression>
+          </sequenceFlow>
+          <sequenceFlow id="flow23" sourceRef="inclusivegateway2" targetRef="terminateendevent1"></sequenceFlow>
+          <sequenceFlow id="flow27" sourceRef="startevent2" targetRef="inclusivegateway1"></sequenceFlow>
+          <userTask id="totalCheckDelegatedtask_lvl1" name="Выполнить проверку перед отправкой вышестоящему" activiti:assignee="${ramecwf_assigneeHead}" activiti:formKey="ramecwf:totalCheckDelegatedMultiAssigneeTaskSluZap">
+            <extensionElements>
+              <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+                <activiti:field name="script">
+                  <activiti:string><![CDATA[logger.warn("------lvl1 totalCheck create started------");
+if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+logger.warn("КОЛ-ВО ДОКОВ 32 lvl2 create=" + bpm_package.children.length);
+
+
+  var taskID = "activiti$" + task.id;
+		execution.setVariableLocal("reviewerTaskID1", taskID);
+			logger.warn("totalCheckDelegatedtask_lvl1 reviewerTaskID = " + taskID);
+
+  var taskID1 = execution.getVariable("reviewerTaskID1");
+		execution.setVariable("reviewerTaskID", execution.getVariable("reviewerTaskID1"));
+		execution.setVariable("reviewerTaskID1", execution.getVariable("reviewerTaskID1"));
+			logger.warn("totalCheckDelegatedtask_lvl1 reviewerTaskID1 = " + taskID1);
+
+  var fullNameList = execution.getVariable("fullNameList");
+		execution.setVariableLocal("fullNameList", fullNameList);
+			logger.warn("-----fullNameList lvl2 21 " + fullNameList);
+			
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк	
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+
+function getThisCheckerResComments(commentsString, fNameString) {
+    //формирование массива с комментами	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    var RTCarr = comStr.split("\t");
+    logger.warn("-----comStr " + comStr);
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    logger.warn("*********************");
+    var fNameStr = String(fNameString);
+    var fNameList = fNameStr.split(";");
+    logger.warn("fNameList.length  " + fNameList.length);
+    logger.warn("*********************");
+    //перебор комментов	
+    var k = 0;
+    for (var i = 0; i < RTCarr.length; i++) {
+        for (var j = 0; j < fNameList.length - 1; j++) {
+            var fullName = fNameList[j];
+            logger.warn(fullName);
+            //если имя есть в списке - добавляем в массив			
+            if (~RTCarr[i].indexOf(fullName)) {
+                newRTCarr[k] = RTCarr[i];
+                k++;
+            }
+            //иначе пропускаем данный коммент	
+            var checkvar = newRTCarr[k];
+            logger.warn("checkvar----  " + k + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+        }
+    }
+    logger.warn("*********************");
+    logger.warn(newRTCarr + "   " + newRTCarr.length);
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+  var res = execution.getVariable('ramecwf_result');
+  var res0 = execution.getVariable("infosAboutTask");
+  var res1 = String(res0);
+  
+  var infosAboutTaskLvl2 = execution.getVariable("infosAboutTaskLvl2");
+  var infoForThisChecker = getThisCheckerResComments(infosAboutTaskLvl2, fullNameList);
+  var newinfosAboutTask = formatResComments(infoForThisChecker);
+		task.setVariableLocal("infoForThisChecker", newinfosAboutTask);
+		task.setVariableLocal('ramecwf_resultSummary', newinfosAboutTask);
+		task.setVariable('ramecwf_resolution', execution.getVariable('ramecwf_resolution'));
+		task.setVariable('ramecwf_summary', '');
+logger.warn("Проверка уровень 02 32 event=create-----------result=" + res1 + "------result TYPE=" + typeof(res1));
+logger.warn("Проверка уровень 02 32 event=create-----------infosAboutTaskLvl2=" + infosAboutTaskLvl2);
+logger.warn("Проверка уровень 02 32 event=create-----------newinfosAboutTask=" + newinfosAboutTask);
+logger.warn("Проверка уровень 02 32 event=create-----------infoForThisChecker=" + infoForThisChecker);
+
+logger.warn("------lvl2 totalCheck create completed------");]]></activiti:string>
+                </activiti:field>
+                <activiti:field name="runAs">
+                  <activiti:string><![CDATA[admin]]></activiti:string>
+                </activiti:field>
+              </activiti:taskListener>
+              <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+                <activiti:field name="script">
+                  <activiti:string><![CDATA[logger.warn("------lvl2 totalCheck complete started------");
+logger.warn("КОЛ-ВО ДОКОВ 32 lvl2 complete=" + bpm_package.children.length);
+var sHist = execution.getVariable('ramecwf_summaryHistory');
+var sLocal = task.getVariableLocal('ramecwf_summary');
+var infoForThisChecker = execution.getVariable("infosAboutTaskLvl2");
+logger.warn("Проверка уровень 02 32 event=create-----------infosAboutTaskLvl2=" + infosAboutTaskLvl2);
+var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+if (taskDueDate) {
+    execution.setVariable('bpm_workflowDueDate', taskDueDate);
+}
+
+function formatISO(dt) {
+    var yy = dt.getYear() + 1900;
+    yy = yy + '-';
+    var mm = (dt.getMonth() + 1).toString();
+    mm = (mm < 10 ? '0' + mm : mm) + '-';
+    var dd = dt.getDate().toString();
+    dd = (dd < 10 ? '0' + dd : dd);
+    return (yy + mm + dd);
+}
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+
+function statRus(stat1) {
+    if (stat1 == "Not Yet Started") {
+        var stats = "Ещё не начато";
+    } else if (stat1 == "In Progress") {
+        stats = "В работе";
+    } else if (stat1 == "Completed") {
+        stats = "Выполнено;";
+    }
+    return stats;
+}
+//предназначена для изменения коммента САМОГО ПРОВЕРЯЮЩЕГО при отправке вышестоящему
+function getNewResComments(commentsString) {
+    //формирование массива с комментами	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    var RTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    //перебор комментов	
+    for (var i = 0; i < RTCarr.length; i++) {
+        //замена коммента на новый		
+        if (~RTCarr[i].indexOf(fullName)) {
+            logger.warn("OLD RTCarr  " + RTCarr[i]);
+            newRTCarr[i] = taskSum;
+            logger.warn("Changed newRTCarr  " + newRTCarr[i]);
+        } //если юзер != таск.испольнитель, то оставляем всё как есть		
+        else {
+            newRTCarr[i] = RTCarr[i];
+        }
+        var checkvar = newRTCarr[i];
+        logger.warn("checkvar----  " + i + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+    }
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+var lvl2InfoTask = execution.getVariable("infosAboutTaskLvl2");
+
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив	
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк		
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+if (sLocal) {
+    var fullName = personFullName(task.assignee);
+    if (fullName) {
+        sLocal = fullName + ': ' + sLocal;
+    }
+}
+
+
+execution.setVariable('ramecwf_totalCheckDelegatedOutcomeSluZap', task.getVariableLocal('ramecwf_totalCheckDelegatedOutcomeSluZap'));
+if (task.getVariableLocal('ramecwf_totalCheckDelegatedOutcomeSluZap') == 'upstreamReview') {
+    logger.warn("upstr block started");
+    logger.warn("Проверка уровень 02 32 event=complete sLocal=" + sLocal);
+    execution.setVariable("ramecwf_result", sLocal);
+    logger.warn("Проверка уровень 02 32 event=complete TYPE ramecwf_result =" + typeof(ramecwf_result));
+    var stat = task.getVariable("bpm_status");
+    logger.warn("Проверка уровень 02 32 event=complete------status " + stat);
+    var stat0 = String(stat);
+    var statRu = statRus(stat0);
+    var taskSum = sLocal + " Статус выполнения: " + statRu;
+    execution.setVariable("ramecwf_taskSummary", taskSum);
+    logger.warn("upstr block stopped");
+    
+	// 	ИЗМЕНЕНИЕ НАЧАЛЬНОГО КОММЕНТА С СУММОЙ РЕЗУЛЬТАТОВ
+    
+	//получили инфу об актуальном состоянии задачи		
+      var res0 = execution.getVariable('ramecwf_taskSummary');
+      var res1 = String(res0);
+    logger.warn("Проверка уровень 01 31 event=complete---result=" + res1 + "---result TYPE=" + typeof(res1));
+    
+	//получили инфу о всех тасках			
+      var infosAboutTask = execution.getVariable("infosAboutTask");
+    logger.warn("Проверка уровень 01 31 event=complete-----------infosAboutTask=" + infosAboutTask);
+    
+	//вписали результат при создании таска		
+      var newinfosAboutTask = getNewResComments(infosAboutTask);
+
+    logger.warn("Проверка уровень 01 31 event=complete-----------newinfosAboutTask=" + newinfosAboutTask);
+    
+	//сумма результатов					
+      var totalFormatinfosAboutTask = formatResComments(newinfosAboutTask);
+    task.setVariable('ramecwf_resultSummary', totalFormatinfosAboutTask);
+    
+	//информация о задаче					
+    execution.setVariable("infosAboutTask", totalFormatinfosAboutTask);
+    execution.setVariable('ramecwf_summary', '');
+	
+	execution.setVariable("stopThisBlock", true);
+}
+
+  var reviewerTaskIDLvl1 = execution.getVariable("reviewerTaskIDLvl1");
+		logger.warn("totalCheckDelegatedtask_lvl1 reviewerTaskID = " + reviewerTaskIDLvl1);
+		updReviewerTask(totalFormatinfosAboutTask, reviewerTaskIDLvl1);
+		
+		
+/*функция для изменения коммента в таске вышестоящего*/
+function updReviewerTask(newTaskProp, reviewerTaskID){
+	var wf = workflow.getInstance(workflowinstanceid);
+				logger.warn(wf);
+	var tsk = workflow.getTask(reviewerTaskID);
+				logger.warn(tsk);
+	var ca = tsk.getProperties();
+				logger.log(tsk.getProperties());
+	var ab = tsk.properties["ramecwf:resultSummary"];
+				logger.warn("--------------"+ab);
+
+	ca["ramecwf:resultSummary"] = newTaskProp;
+	tsk.setProperties(ca);
+				logger.warn(tsk.properties["ramecwf:resultSummary"]);
+return;
+}		
+
+var grpId = workflowinstanceid;
+
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId; logger.log("grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }
+		
+logger.warn("------lvl2 totalCheck complete completed------");]]></activiti:string>
+                </activiti:field>
+                <activiti:field name="runAs">
+                  <activiti:string><![CDATA[admin]]></activiti:string>
+                </activiti:field>
+              </activiti:taskListener>
+            </extensionElements>
+          </userTask>
+          <sequenceFlow id="flow028" sourceRef="inclusivegateway1" targetRef="totalCheckDelegatedtask_lvl1">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_subprocessKind1 == 'checkDelegated'}]]></conditionExpression>
+          </sequenceFlow>
+          <subProcess id="subprocess3" name="Блок выполнения задачи">
+            <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${users2assigned}" activiti:elementVariable="usrs"></multiInstanceLoopCharacteristics>
+            <startEvent id="startevent3" name="Start"></startEvent>
+            <userTask id="performTask1" name="Задача" activiti:assignee="${user2assigned}" activiti:formKey="ramecwf:performTopLvlMultiAssigneeTaskSluZap">
+              <extensionElements>
+                <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+                  <activiti:field name="script">
+                    <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+  var fNameStr = execution.getVariable("fNameStr");
+  var checkThisTask0 = execution.getVariable("ramecwf_assigneeHead");
+  var checkThisTask = String(checkThisTask0);
+  var sHist0 = task.setVariableLocal('ramecwf_summaryHistory', ramecwf_summaryHistory);
+	
+	execution.setVariableLocal("fNameStr", fNameStr);
+	execution.setVariableLocal("ramecwf_checkerTopLvlLocalSluZap", checkThisTask);
+	execution.setVariable("nextTaskChecker", checkThisTask);
+
+task.setVariableLocal('ramecwf_directive', execution.getVariable("ramecwf_directive"));
+task.setVariable('ramecwf_summary', '');
+		
+		logger.warn("Проверка уровень 02 31 event=create--------checkerAss " + checkThisTask0);
+		logger.warn("Проверка уровень 02 31 event=create--------fNameStr " + fNameStr);
+		logger.warn("КОЛ-ВО ДОКОВ 31 lvl2 create=" + bpm_package.children.length);
+		logger.warn("Проверка уровень 02 31 event=create----sHist" + sHist0);
+		logger.warn("Проверка уровень 02 31 event=create--------nextTaskChecker " + checkThisTask);
+		logger.warn("Проверка уровень 02 31 event=create резолюция=" + ramecwf_resolution);
+
+  var revTaskID = execution.getVariable("reviewerTaskID");
+		execution.setVariableLocal("reviewerTaskID", revTaskID);
+			logger.warn("performtask_lvl1 reviewerTaskID = " + revTaskID);
+
+//получили инфу о всех тасках
+	var OldinfosAboutTask = execution.getVariable("infosAboutTask");
+	var infosAboutTaskLvl2 = execution.getVariable("infosAboutTaskLvl2");
+logger.warn("Проверка уровень 02 31 event=create-----------infosAboutTaskLvl2=" + infosAboutTaskLvl2); 
+
+//сумма результатов
+task.setVariable('ramecwf_resultSummary', execution.getVariable( "infosAboutTaskLvl2" ) );]]></activiti:string>
+                  </activiti:field>
+                  <activiti:field name="runAs">
+                    <activiti:string><![CDATA[admin]]></activiti:string>
+                  </activiti:field>
+                </activiti:taskListener>
+                <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+                  <activiti:field name="script">
+                    <activiti:string><![CDATA[var sHist = execution.getVariable('ramecwf_summaryHistory');
+var sLocal = task.getVariableLocal('ramecwf_summary');
+logger.warn("Проверка уровень 02 31 event=complete Комментарий=" + sLocal);
+logger.warn("КОЛ-ВО ДОКОВ 31 lvl2 complete=" + bpm_package.children.length);
+var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+if (taskDueDate) execution.setVariable('bpm_workflowDueDate', taskDueDate);
+
+function formatISO(dt) {
+    var yy = dt.getYear() + 1900;
+    yy = yy + '-';
+    var mm = (dt.getMonth() + 1).toString();
+    mm = (mm < 10 ? '0' + mm : mm) + '-';
+    var dd = dt.getDate().toString();
+    dd = (dd < 10 ? '0' + dd : dd);
+    return (yy + mm + dd);
+}
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+
+function statRus(stat1) {
+    if (stat1 == "Not Yet Started") {
+        var stats = "Ещё не начато";
+    } else if (stat1 == "In Progress") {
+        stats = "В работе";
+    } else if (stat1 == "Completed") {
+        stats = "Выполнено;";
+    }
+    return stats;
+}
+
+function getNewResComments(commentsString) {
+    //формирование массива с комментами	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    var RTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    //перебор комментов		
+    for (var i = 0; i < RTCarr.length; i++) {
+        //замена коммента на новый		
+        if (~RTCarr[i].indexOf(fullName)) {
+            logger.warn("OLD RTCarr  " + RTCarr[i]);
+            newRTCarr[i] = taskSum;
+            logger.warn("Changed newRTCarr  " + newRTCarr[i]);
+        }
+        //если юзер != таск.испольнитель, то оставляем всё как есть			
+        else {
+            newRTCarr[i] = RTCarr[i];
+        }
+        var checkvar = newRTCarr[i];
+        logger.warn("checkvar----  " + i + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+    }
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+/*функция для изменения коммента в таске вышестоящего*/
+function updReviewerTask(newTaskProp, reviewerTaskID){
+	var wf = workflow.getInstance(workflowinstanceid);
+				logger.warn(wf);
+	var tsk = workflow.getTask(reviewerTaskID);
+				logger.warn(tsk);
+	var ca = tsk.getProperties();
+				logger.log(tsk.getProperties());
+	var ab = tsk.properties["ramecwf:resultSummary"];
+				logger.warn("--------------"+ab);
+
+	ca["ramecwf:resultSummary"] = newTaskProp;
+	tsk.setProperties(ca);
+				logger.warn(tsk.properties["ramecwf:resultSummary"]);
+return;
+}
+
+function getThisCheckerResComments(commentsString, fNameString) {
+    //формирование массива с комментами
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    var RTCarr = comStr.split("\t");
+    logger.warn("-----comStr " + comStr);
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    logger.warn("*********************");
+    var fNameStr = String(fNameString);
+    var fNameList = fNameStr.split(";");
+    logger.warn("fNameList.length  " + fNameList.length);
+    logger.warn("*********************");
+    //перебор комментов
+    var k = 0;
+    for (var i = 0; i < RTCarr.length; i++) {
+        for (var j = 0; j < fNameList.length - 1; j++) {
+            var fullName = fNameList[j];
+            logger.warn(fullName);
+            //если имя есть в списке - добавляем в массив		
+            if (~RTCarr[i].indexOf(fullName)) {
+                newRTCarr[k] = RTCarr[i];
+                k++;
+            }
+            //иначе пропускаем данный коммент			
+            var checkvar = newRTCarr[k];
+            logger.warn("checkvar----  " + k + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+        }
+    }
+    logger.warn("*********************");
+    logger.warn(newRTCarr + "   " + newRTCarr.length);
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив	
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк		
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+
+if (sLocal) {
+    var fullName = personFullName(task.assignee);
+    if (fullName) {
+        sLocal = fullName + ': ' + sLocal;
+    }
+}
+task.setVariable('ramecwf_resultSummary', "");
+var fNameStr = execution.getVariable("fNameStr");
+
+execution.setVariable('ramecwf_performTopLvlOutcomeSluZap', task.getVariableLocal('ramecwf_performTopLvlOutcomeSluZap'));
+
+if (task.getVariableLocal('ramecwf_performTopLvlOutcomeSluZap') == 'Done') {
+    logger.warn("Проверка уровень 02 31 event=complete sLocal=" + sLocal);
+    execution.setVariable("ramecwf_result", sLocal);
+    logger.warn("Проверка уровень 02 31 event=complete TYPE ramecwf_result =" + typeof(ramecwf_result));
+    var stat = task.getVariable("bpm_status");
+    logger.warn("Проверка уровень 02 31 event=complete ------status " + stat);
+    var stat0 = String(stat);
+    var statRu = statRus(stat0);
+    var taskSum = sLocal + " Статус выполнения: " + statRu;
+    execution.setVariable("fullNameList", execution.getVariable("fNameStr"));
+    execution.setVariable("checkerCheck", execution.getVariable("ramecwf_checkerTopLvlLocalSluZap"));
+    var potentialReworker = task.assignee;
+    execution.setVariable("potentialReworker", potentialReworker);
+	
+    execution.setVariable("reviewerTaskID", execution.getVariable("reviewerTaskID"));
+}
+
+if (task.getVariableLocal('ramecwf_performTopLvlOutcomeSluZap') == 'Delegate') {
+    execution.setVariable("ramecwf_assigneeHead", task.assignee);
+    if (taskDueDate) {
+        sLocal = sLocal + ', выполнить к: ' + formatISO(taskDueDate);
+    }
+    sHist = ((sHist && sHist.length) ? sHist + '\n' : '') + (sLocal ? sLocal : '');
+    execution.setVariable('ramecwf_summaryHistory', sHist);
+    logger.warn("Проверка уровень 02 31 event=complete -----31 sHist" + sHist);
+    taskSum = sLocal + " Статус выполнения: " + "Делегировано";
+    var ppl1 = task.getVariableLocal("ramecwf_assignees");
+    logger.warn("Проверка уровень 02 31 event=complete исполнитель=" + ppl1);
+    var size = ppl1.size();
+    logger.warn("Проверка уровень 02 31 event=complete kolvo=" + size);
+    var names1 = new java.util.ArrayList();
+    var kinds1 = new java.util.ArrayList();
+    for (var i = 0; i < size; i++) {
+        var name1 = ppl1.get(i).properties.userName;
+        logger.warn("Проверка уровень 02 31 event=complete -------------" + ppl1.get(i).properties.userName);
+        names1.add(name1);
+        logger.warn("Проверка уровень 02 31 event=complete-------------" + i + "    " + name1);
+        kinds1.add('perform');
+    }
+    execution.setVariable("users2assigned", names1);
+    logger.warn("Проверка уровень 02 31 event=complete-------------" + names1 + " typeof(names1) " + typeof(names1));
+    execution.setVariable('ramecwf_subprocessKinds1', kinds1);
+    execution.setVariable('ramecwf_performers', names1);
+    var checker = task.assignee;
+    execution.setVariable("ramecwf_assigneeHead", checker);
+    logger.warn("Проверка уровень 02 31 event=complete cheker-------" + checker);
+}
+
+// 	ОБЩЕЕ ПРИ ЛЮБОМ ИСХОДЕ
+
+//результат задачи
+execution.setVariable("ramecwf_taskSummary", taskSum);
+
+//получили инфу об актуальном состоянии задачи		
+  var res0 = execution.getVariable('ramecwf_taskSummary');
+  var res1 = String(res0);
+		logger.warn("Проверка уровень 02 31 event=complete---result=" + res1 + "---result TYPE=" + typeof(res1));
+
+//получили инфу о всех тасках		
+  var infosAboutTaskLvl2 = execution.getVariable("infosAboutTaskLvl2");
+		logger.warn("Проверка уровень 02 31 event=complete-----------infosAboutTaskLvl2=" + infosAboutTaskLvl2);
+
+//вписали результат при создании таска	
+  var newinfosAboutTask = getNewResComments(infosAboutTaskLvl2);
+		logger.warn("Проверка уровень 02 31 event=complete-----------newinfosAboutTask=" + newinfosAboutTask);
+//сумма результатов				
+  task.setVariable('ramecwf_resultSummary', newinfosAboutTask);
+
+//информация о задаче				
+ execution.setVariable("infosAboutTaskLvl2", newinfosAboutTask);
+ execution.setVariable('ramecwf_summary', '');
+
+  var revTaskID = execution.getVariable("reviewerTaskID");
+//  var taskSumForReviewer = getThisCheckerResComments(newinfosAboutTask, fNameStr);
+	//	logger.warn("coplete 31 lvl1 taskSumForReviewer выборка нужных комментов "+taskSumForReviewer);
+
+//отформатировали
+var taskSumForReviewer = formatResComments(newinfosAboutTask);
+		logger.warn("coplete 31 lvl1 taskSumForReviewer отформатированный "+newinfosAboutTask);
+		logger.warn("revTaskID  "+revTaskID);
+	updReviewerTask(taskSumForReviewer, revTaskID);
+	
+	var grpId = workflowinstanceid;
+
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId; logger.log("grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }]]></activiti:string>
+                  </activiti:field>
+                  <activiti:field name="runAs">
+                    <activiti:string><![CDATA[admin]]></activiti:string>
+                  </activiti:field>
+                </activiti:taskListener>
+              </extensionElements>
+            </userTask>
+            <sequenceFlow id="flow19" sourceRef="performTask1" targetRef="checkTask1"></sequenceFlow>
+            <exclusiveGateway id="exclusivegateway4" name="Exclusive Gateway"></exclusiveGateway>
+            <sequenceFlow id="flow18" sourceRef="exclusivegateway4" targetRef="performTask1">
+              <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_checkOutcomeSluZap == 'Rejected'}]]></conditionExpression>
+            </sequenceFlow>
+            <userTask id="checkTask1" name="Проверить задачу" activiti:assignee="${checkerCheck}" activiti:formKey="ramecwf:checkMultiAssigneeTaskSluZap">
+              <extensionElements>
+                <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+                  <activiti:field name="script">
+                    <activiti:string><![CDATA[logger.warn("------lvl2 32 create started------");
+if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+  
+  var fullNameList = execution.getVariable("fullNameList");
+  var reviewerTaskID = execution.getVariable("reviewerTaskID");
+	execution.setVariableLocal("fullNameList", fullNameList);
+	execution.setVariableLocal("reviewerTaskID", reviewerTaskID);
+		logger.warn("КОЛ-ВО ДОКОВ 32 lvl2 create=" + bpm_package.children.length);
+		logger.warn("-----fullNameList lvl2 21 " + fullNameList);
+		logger.warn("-----reviewerTaskID lvl2 21 " + reviewerTaskID);
+
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки
+      var newRTCarr = [];
+      var comStr = String(commentsString);
+			logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив	
+      var newRTCarr = commentsString.split("\t");
+			logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк		
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+
+function getThisCheckerResComments(commentsString, fNameString) {
+    //формирование массива с комментами
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    var RTCarr = comStr.split("\t");
+    logger.warn("-----comStr " + comStr);
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    logger.warn("*********************");
+    var fNameStr = String(fNameString);
+    var fNameList = fNameStr.split(";");
+    logger.warn("fNameList.length  " + fNameList.length);
+    logger.warn("*********************");
+    //перебор комментов
+    var k = 0;
+    for (var i = 0; i < RTCarr.length; i++) {
+        for (var j = 0; j < fNameList.length - 1; j++) {
+            var fullName = fNameList[j];
+            logger.warn(fullName);
+            //если имя есть в списке - добавляем в массив		
+            if (~RTCarr[i].indexOf(fullName)) {
+                newRTCarr[k] = RTCarr[i];
+                k++;
+            }
+            //иначе пропускаем данный коммент			
+            var checkvar = newRTCarr[k];
+            logger.warn("checkvar----  " + k + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+        }
+    }
+    logger.warn("*********************");
+    logger.warn(newRTCarr + "   " + newRTCarr.length);
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+
+  var res = execution.getVariable('ramecwf_result');
+  var res0 = execution.getVariable("infosAboutTask");
+  var res1 = String(res0);
+  var infosAboutTaskLvl2 = execution.getVariable("infosAboutTaskLvl2");
+  var infoForThisChecker = getThisCheckerResComments(infosAboutTaskLvl2, fullNameList);
+		
+		logger.warn("Проверка уровень 02 32 event=create-----------result=" + res1 + "------result TYPE=" + typeof(res1));
+		logger.warn("Проверка уровень 02 32 event=create-----------infosAboutTaskLvl2=" + infosAboutTaskLvl2);
+		logger.warn("Проверка уровень 02 32 event=create-----------newinfosAboutTask=" + newinfosAboutTask);
+		logger.warn("Проверка уровень 02 32 event=create-----------infoForThisChecker=" + infoForThisChecker);
+  var newinfosAboutTask = formatResComments(infoForThisChecker);
+task.setVariableLocal("infoForThisChecker", newinfosAboutTask);
+task.setVariableLocal('ramecwf_resultSummary', newinfosAboutTask);
+  
+  var potReworker = execution.getVariable("potentialReworker");
+		execution.setVariableLocal("ramecwf_potentialReworkerLocalSluZap", potReworker);
+
+		task.setVariableLocal('ramecwf_resultLocalSluZap', execution.getVariable('ramecwf_taskSummary'));
+task.setVariable('ramecwf_resolution', execution.getVariable('ramecwf_resolution'));
+task.setVariable('ramecwf_summary', '');
+logger.warn("------lvl2 32 create completed------");
+
+/* Даём права активити-группе на файлы, где группа ещё не прописана в правах получение прав старыми пользователями на новые доки */
+			  var grpId = workflowinstanceid;
+    var grpName = 'GROUP_' + grpId; logger.log("lvl 2 grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("lvl 2 f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }]]></activiti:string>
+                  </activiti:field>
+                  <activiti:field name="runAs">
+                    <activiti:string><![CDATA[admin]]></activiti:string>
+                  </activiti:field>
+                </activiti:taskListener>
+                <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+                  <activiti:field name="script">
+                    <activiti:string><![CDATA[logger.warn("КОЛ-ВО ДОКОВ 32 lvl2 complete=" + bpm_package.children.length);
+  var sHist = execution.getVariable('ramecwf_summaryHistory');
+  var sLocal = task.getVariableLocal('ramecwf_summary');
+  var infoForThisChecker = execution.getVariable("infosAboutTaskLvl2");
+  var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+  var assCheck = execution.setVariableLocal("task.assignee", ramecwf_assigneeHead);
+	logger.warn("Проверка уровень 02 32 event=create-----------infosAboutTask=" + infosAboutTask);
+	logger.warn("WARN!!!!!!!!!!!!!! assCheck " + assCheck);
+if (taskDueDate) {
+    execution.setVariable('bpm_workflowDueDate', taskDueDate);
+}
+
+
+  var worker = execution.getVariable("ramecwf_potentialReworkerLocalSluZap");
+		logger.warn("ramecwf_potentialReworkerLocalSluZap  " + worker);
+  var workerFName = personFullName(worker);
+  var lvl2InfoTask = execution.getVariable("infosAboutTaskLvl2");
+
+  if (sLocal) {
+    var fullName = personFullName(task.assignee);
+    if (fullName) {
+        sLocal = fullName + ': ' + sLocal;
+    }
+}
+execution.setVariable('ramecwf_checkOutcomeSluZap', task.getVariableLocal('ramecwf_checkOutcomeSluZap'));
+if (task.getVariableLocal('ramecwf_checkOutcomeSluZap') == 'Approve') {
+    logger.warn("approve block started");
+    execution.setVariable("ramecwf_result", sLocal);
+    execution.setVariable('ramecwf_summaryHistory', sHist);
+    execution.setVariable('ramecwf_summary', '');
+    var headReq = " (принято)";
+    logger.warn("approve block stopped");
+}
+if (task.getVariableLocal('ramecwf_checkOutcomeSluZap') == 'Rejected') {
+    logger.warn("Rejected block started");
+    execution.setVariable("ramecwf_assigneeHead", task.assignee);
+    sLocal = sLocal + "; (возвращено на доработку)";
+    logger.warn("Проверка уровень 02 32 event=complete-----------new sLocal  " + sLocal);
+    if (taskDueDate) {
+        sLocal = sLocal + ', исправить к: ' + formatISO(taskDueDate);
+    }
+    execution.setVariable("ramecwf_directive", sLocal);
+    execution.setVariable('ramecwf_summary', '');
+    execution.setVariable("user2assigned", execution.getVariable("ramecwf_potentialReworkerLocalSluZap"));
+    headReq = " (возвращено на доработку)";
+    logger.warn("Rejected block stopped");
+}
+
+//коррекция инфы о результатах выполнения задач подчиненными	
+  var LVL2newinfosAboutTask =  updResComments(lvl2InfoTask);
+  var infoForThisChecker = task.getVariable("infoForThisChecker");
+   infoForThisChecker = updResComments(infoForThisChecker);
+   reviewerTaskID = execution.getVariable("reviewerTaskID");
+  updReviewerTask(infoForThisChecker, reviewerTaskID);
+	
+
+function formatISO(dt) {
+    var yy = dt.getYear() + 1900;
+    yy = yy + '-';
+    var mm = (dt.getMonth() + 1).toString();
+    mm = (mm < 10 ? '0' + mm : mm) + '-';
+    var dd = dt.getDate().toString();
+    dd = (dd < 10 ? '0' + dd : dd);
+    return (yy + mm + dd);
+}
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+
+function statRus(stat1) {
+    if (stat1 == "Not Yet Started") {
+        var stats = "Ещё не начато";
+    } else if (stat1 == "In Progress") {
+        stats = "В работе";
+    } else if (stat1 == "Completed") {
+        stats = "Выполнено;";
+    }
+    return stats;
+}
+
+//данная функция добавляет результат проверки в коммент подчиненных
+function updResComments(commentsString) {
+    //формирование массива с комментами	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    var RTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    //перебор комментов	
+    for (var i = 0; i < RTCarr.length; i++) {
+        //если в комменте есть имя проверяемого - добавляем результат проверки	
+        if (~RTCarr[i].indexOf(workerFName)) {
+            logger.warn("OLD RTCarr  " + RTCarr[i]);
+            newRTCarr[i] = RTCarr[i] + " " + headReq;
+            logger.warn("Changed newRTCarr  " + newRTCarr[i]);
+        } //если нет, то оставляем всё как есть		
+        else {
+            newRTCarr[i] = RTCarr[i];
+        }
+        var checkvar = newRTCarr[i];
+        logger.warn("checkvar----  " + i + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+    }
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+
+
+  //	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}	
+	
+/*функция для изменения коммента в таске вышестоящего*/
+function updReviewerTask(newTaskProp, reviewerTaskID){
+				logger.warn("lvl0 31 upd totalCheck start");
+	var wf = workflow.getInstance(workflowinstanceid);
+				logger.warn(wf);
+	var tsk = workflow.getTask(reviewerTaskID);
+				logger.warn(tsk);
+	var ca = tsk.getProperties();
+				logger.log(tsk.getProperties());
+	var ab = tsk.properties["ramecwf:resultSummary"];
+				logger.warn("--------------"+ab);
+
+	ca["ramecwf:resultSummary"] = newTaskProp;
+	tsk.setProperties(ca);
+				logger.warn(tsk.properties["ramecwf:resultSummary"]);
+				logger.warn("lvl0 31 upd totalCheck completed" + newTaskProp);
+return;
+}
+
+var grpId = workflowinstanceid;
+
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId; logger.log("grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }		
+	logger.warn("Проверка уровень 02 31 event=complete-----------LVL2newinfosAboutTask=" + LVL2newinfosAboutTask);]]></activiti:string>
+                  </activiti:field>
+                  <activiti:field name="runAs">
+                    <activiti:string><![CDATA[admin]]></activiti:string>
+                  </activiti:field>
+                </activiti:taskListener>
+              </extensionElements>
+            </userTask>
+            <sequenceFlow id="flow15" sourceRef="checkTask1" targetRef="exclusivegateway4"></sequenceFlow>
+            <endEvent id="endevent7" name="End"></endEvent>
+            <sequenceFlow id="flow30" sourceRef="exclusivegateway4" targetRef="endevent7"></sequenceFlow>
+            <sequenceFlow id="flow31" sourceRef="startevent3" targetRef="performTask1">
+              <extensionElements>
+                <activiti:executionListener event="take" class="org.alfresco.repo.workflow.activiti.listener.ScriptExecutionListener">
+                  <activiti:field name="script">
+                    <activiti:string><![CDATA[execution.setVariable('user2assigned', ramecwf_performers.get(loopCounter));]]></activiti:string>
+                  </activiti:field>
+                </activiti:executionListener>
+              </extensionElements>
+            </sequenceFlow>
+          </subProcess>
+          <inclusiveGateway id="inclusivegateway1" name="Exclusive Gateway"></inclusiveGateway>
+          <sequenceFlow id="flow33" sourceRef="subprocess3" targetRef="inclusivegateway2"></sequenceFlow>
+          <endEvent id="terminateendevent1" name="TerminateEndEvent">
+            <terminateEventDefinition></terminateEventDefinition>
+          </endEvent>
+          <sequenceFlow id="flow34" sourceRef="totalCheckDelegatedtask_lvl1" targetRef="inclusivegateway2"></sequenceFlow>
+          <inclusiveGateway id="inclusivegateway2" name="Exclusive Gateway"></inclusiveGateway>
+        </subProcess>
+        <sequenceFlow id="flow21" sourceRef="subprocess2" targetRef="exclusivegateway7">
+          <conditionExpression xsi:type="tFormalExpression"><![CDATA[${stopThisBlock == 'true'}]]></conditionExpression>
+        </sequenceFlow>
+        <exclusiveGateway id="exclusivegateway2" name="Exclusive Gateway"></exclusiveGateway>
+        <sequenceFlow id="flow8" sourceRef="exclusivegateway2" targetRef="endevent9">
+          <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_checkOutcomeSluZap == 'Approve'}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="flow9" sourceRef="exclusivegateway2" targetRef="performTask0">
+          <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_checkOutcomeSluZap == 'Rejected'}]]></conditionExpression>
+        </sequenceFlow>
+        <startEvent id="startevent4" name="Start"></startEvent>
+        <sequenceFlow id="flow5" sourceRef="startevent4" targetRef="performTask0">
+          <extensionElements>
+            <activiti:executionListener event="take" class="org.alfresco.repo.workflow.activiti.listener.ScriptExecutionListener">
+              <activiti:field name="script">
+                <activiti:string><![CDATA[execution.setVariable('user2assign', ramecwf_performers.get(loopCounter));]]></activiti:string>
+              </activiti:field>
+            </activiti:executionListener>
+          </extensionElements>
+        </sequenceFlow>
+        <endEvent id="endevent9" name="TerminateEndEvent"></endEvent>
+      </subProcess>
+      <userTask id="totalCheckDelegatedtask_lvl0" name="Выполнить проверку перед отправкой вышестоящему" activiti:assignee="${ramecwf_mainAssignee}" activiti:formKey="ramecwf:totalCheckDelegatedMultiAssigneeTaskSluZap">
+        <extensionElements>
+          <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+            <activiti:field name="script">
+              <activiti:string><![CDATA[logger.warn("------lvl0 totalCheck create started------");
+if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+
+var usrs = execution.getVariable("users2assign");
+				logger.warn("totalcheck usrs 0 исполнители="+usrs + "kolvo = " + usrs.size());
+ 
+
+  var taskID = "activiti$" + task.id;
+		execution.setVariableLocal("reviewerTaskID0", taskID);
+			logger.warn("totalCheckDelegatedtask_lvl0 reviewerTaskID = " + taskID);
+
+  var taskID0 = execution.getVariable("reviewerTaskID0");
+	execution.setVariable("reviewerTaskID", execution.getVariable("reviewerTaskID0"));
+	execution.setVariable("reviewerTaskIDLvl1", execution.getVariable("reviewerTaskID0"));
+		logger.warn("totalCheckDelegatedtask_lvl1 reviewerTaskID0 = " + taskID0);
+
+var res1 = execution.getVariable("infosAboutTask");
+var res2 = String(res1);
+execution.setVariable("infosAboutTask", formatResComments(res2));
+execution.setVariableLocal('ramecwf_resultSummary', execution.getVariable("infosAboutTask"));
+logger.warn("Проверка уровень 01 32 event=create-----------result TYPE=" + typeof(res1)+"-----"+formatResComments(res1));
+execution.setVariable("infosAboutTask", infosAboutTask);
+
+task.setVariable('ramecwf_resultLocalSluZap', execution.getVariable('ramecwf_taskSummary'));
+logger.warn("Проверка уровень 01 32 event=create-----------summTask");
+task.setVariable('ramecwf_resolution', execution.getVariable('ramecwf_resolution'));
+logger.warn("Проверка уровень 01 32 event=create-----------resolut");
+task.setVariable('ramecwf_summary', '');
+
+var grpId = workflowinstanceid;
+var toUserMail = task.getVariable('ramecwf_mainAssignee'); 
+if (toUserMail) {
+  toUserMail = people.getPerson(toUserMail); logger.warn(toUserMail.properties.userName);
+
+  if (toUserMail) {
+    var auth = groups.getGroup(grpId);
+    /* Добавляем активити-группу, если её ещё нет */
+    if (!auth) { auth = groups.createRootGroup(grpId, grpId); }
+    /* Добавляем пользователя этой задачи в активити-группу */
+    if (auth && !auth.allUsers.filter(function (elt) { return elt.userName.equals(toUserMail.properties.userName); }).length) {
+      auth.addAuthority(toUserMail.properties.userName); logger.warn(toUserMail.properties.userName);
+    }
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId;
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+        f1.setPermission('Consumer', grpName);
+      }
+    }
+  }
+}
+
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив			
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк		
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+logger.warn("------lvl2 totalCheck create completed------");]]></activiti:string>
+            </activiti:field>
+            <activiti:field name="runAs">
+              <activiti:string><![CDATA[admin]]></activiti:string>
+            </activiti:field>
+          </activiti:taskListener>
+          <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+            <activiti:field name="script">
+              <activiti:string><![CDATA[logger.warn("------lvl2 totalCheck complete started------");
+logger.warn("КОЛ-ВО ДОКОВ 32 lvl2 complete=" + bpm_package.children.length);
+var sHist = execution.getVariable('ramecwf_summaryHistory');
+var sLocal = task.getVariableLocal('ramecwf_summary');
+var infoForThisChecker = execution.getVariable("infosAboutTaskLvl2");
+logger.warn("Проверка уровень 02 32 event=create-----------infosAboutTask=" + infosAboutTask);
+var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+if (taskDueDate) {
+    execution.setVariable('bpm_workflowDueDate', taskDueDate);
+}
+
+function formatISO(dt) {
+    var yy = dt.getYear() + 1900;
+    yy = yy + '-';
+    var mm = (dt.getMonth() + 1).toString();
+    mm = (mm < 10 ? '0' + mm : mm) + '-';
+    var dd = dt.getDate().toString();
+    dd = (dd < 10 ? '0' + dd : dd);
+    return (yy + mm + dd);
+}
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+
+function statRus(stat1) {
+    if (stat1 == "Not Yet Started") {
+        var stats = "Ещё не начато";
+    } else if (stat1 == "In Progress") {
+        stats = "В работе";
+    } else if (stat1 == "Completed") {
+        stats = "Выполнено;";
+    }
+    return stats;
+}
+//предназначена для изменения коммента САМОГО ПРОВЕРЯЮЩЕГО при отправке вышестоящему
+function getNewResComments(commentsString) {
+    //формирование массива с комментами	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    var RTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + RTCarr.length);
+    //перебор комментов	
+    for (var i = 0; i < RTCarr.length; i++) {
+        //замена коммента на новый		
+        if (~RTCarr[i].indexOf(fullName)) {
+            logger.warn("OLD RTCarr  " + RTCarr[i]);
+            newRTCarr[i] = taskSum;
+            logger.warn("Changed newRTCarr  " + newRTCarr[i]);
+        } //если юзер != таск.испольнитель, то оставляем всё как есть		
+        else {
+            newRTCarr[i] = RTCarr[i];
+        }
+        var checkvar = newRTCarr[i];
+        logger.warn("checkvar----  " + i + "---------  " + checkvar + "-----------   " + typeof(checkvar));
+    }
+    var infosAboutTasks = newRTCarr.join("\t");
+    return infosAboutTasks;
+}
+var lvl2InfoTask = execution.getVariable("infosAboutTaskLvl2");
+//	ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ РЕЗУЛЬТАТОВ ПО ЗАДАНИЯМ	
+function formatResComments(commentsString) {
+    //формирование массива с комментами из полученной строки	
+    var newRTCarr = [];
+    var comStr = String(commentsString);
+    logger.warn("-----comStr " + comStr);
+    //разбивка строки на массив	
+    var newRTCarr = commentsString.split("\t");
+    logger.warn("RTCarr.length  " + newRTCarr.length);
+    //сформировать новую строку с переносом строк		
+    var infosAboutTasks = newRTCarr.join("\t\n");
+    return infosAboutTasks;
+}
+if (sLocal) {
+    var fullName = personFullName(task.assignee);
+    if (fullName) {
+        sLocal = fullName + ': ' + sLocal;
+    }
+}
+execution.setVariable('ramecwf_totalCheckDelegatedOutcomeSluZap', task.getVariableLocal('ramecwf_totalCheckDelegatedOutcomeSluZap'));
+
+if (task.getVariableLocal('ramecwf_totalCheckDelegatedOutcomeSluZap') == 'upstreamReview') {
+    logger.warn("upstr block started");
+    logger.warn("Проверка уровень 02 32 event=complete sLocal=" + sLocal);
+    execution.setVariable("ramecwf_result", sLocal);
+    logger.warn("Проверка уровень 02 32 event=complete TYPE ramecwf_result =" + typeof(ramecwf_result));
+    var stat = task.getVariable("bpm_status");
+    logger.warn("Проверка уровень 02 32 event=complete------status " + stat);
+    var stat0 = String(stat);
+    var statRu = statRus(stat0);
+    var taskSum = sLocal + " Статус выполнения: " + statRu;
+    execution.setVariable("ramecwf_taskSummary", taskSum);
+    logger.warn("upstr block stopped");
+    // 	ИЗМЕНЕНИЕ НАЧАЛЬНОГО КОММЕНТА С СУММОЙ РЕЗУЛЬТАТОВ
+    //получили инфу об актуальном состоянии задачи		
+    var res0 = execution.getVariable('ramecwf_taskSummary');
+    var res1 = String(res0);
+    logger.warn("Проверка уровень 01 31 event=complete---result=" + res1 + "---result TYPE=" + typeof(res1));
+    //получили инфу о всех тасках			
+    var infosAboutTask = execution.getVariable("infosAboutTask");
+    logger.warn("Проверка уровень 01 31 event=complete-----------infosAboutTask=" + infosAboutTask);
+    //вписали результат при создании таска		
+    var newinfosAboutTask = getNewResComments(infosAboutTask);
+
+    logger.warn("Проверка уровень 01 31 event=complete-----------newinfosAboutTask=" + newinfosAboutTask);
+    //сумма результатов					
+    var totalFormatinfosAboutTask = formatResComments(newinfosAboutTask);
+    task.setVariable('ramecwf_resultSummary', totalFormatinfosAboutTask);
+    //информация о задаче					
+    execution.setVariable("infosAboutTask", totalFormatinfosAboutTask);
+    execution.setVariable('ramecwf_summary', '');
+	
+	execution.setVariable("allDone", "true");
+	
+}
+
+var grpId = workflowinstanceid;
+
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId; logger.log("grpName= "+grpName);
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+		logger.log("f1= "+f1);
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+		  logger.log("f1= "+f1.permissions);
+        f1.setPermission('Consumer', grpName);
+      }
+    }
+logger.warn("------lvl2 totalCheck complete completed------");]]></activiti:string>
+            </activiti:field>
+            <activiti:field name="runAs">
+              <activiti:string><![CDATA[admin]]></activiti:string>
+            </activiti:field>
+          </activiti:taskListener>
+        </extensionElements>
+      </userTask>
+      <sequenceFlow id="flow36" sourceRef="exclusivegateway5" targetRef="totalCheckDelegatedtask_lvl0">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_subprocessKind == 'main'}]]></conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="flow37" sourceRef="exclusivegateway5" targetRef="subprocess4">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_subprocessKind == 'perform'}]]></conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="flow38" sourceRef="totalCheckDelegatedtask_lvl0" targetRef="inclusivegateway3"></sequenceFlow>
+      <sequenceFlow id="flow39" sourceRef="inclusivegateway3" targetRef="terminateendevent2"></sequenceFlow>
+      <sequenceFlow id="flow40" sourceRef="subprocess4" targetRef="inclusivegateway3"></sequenceFlow>
+      <endEvent id="terminateendevent2" name="End">
+        <terminateEventDefinition></terminateEventDefinition>
+      </endEvent>
+      <inclusiveGateway id="inclusivegateway3" name="Inclusive Gateway"></inclusiveGateway>
+    </subProcess>
+    <userTask id="finApprTask0" name="Финальная проверка" activiti:assignee="${initiator.properties.userName}" activiti:formKey="ramecwf:finalApprovementSluZap">
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+
+task.setVariable('ramecwf_summaryHistory', execution.getVariable('ramecwf_summaryHistory'));
+
+task.setVariable('ramecwf_resolution', execution.getVariable('ramecwf_resolution'));
+
+task.setVariable('ramecwf_summary', '');
+
+var usrs = execution.getVariable("users2assign");
+				logger.warn("totalcheck usrs 0 исполнители="+usrs + "kolvo = " + usrs.size());
+]]></activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string><![CDATA[admin]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[var sHist = execution.getVariable('ramecwf_summaryHistory');
+var sLocal = task.getVariableLocal('ramecwf_summary');
+var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+if (taskDueDate) execution.setVariable('bpm_workflowDueDate', taskDueDate);
+
+function formatISO(dt) {
+    var yy = dt.getYear() + 1900;
+    yy = yy + '-';
+    var mm = (dt.getMonth() + 1).toString();
+    mm = (mm < 10 ? '0' + mm : mm) + '-';
+    var dd = dt.getDate().toString();
+    dd = (dd < 10 ? '0' + dd : dd);
+    return (yy + mm + dd);
+}
+
+function personFullName(pers) {
+    if (!pers.properties) {
+        pers = people.getPerson(pers);
+    }
+    if (!pers.properties) {
+        return pers;
+    }
+    var fname = pers.properties.lastName;
+    if (fname) {
+        fname = fname + ' ';
+    }
+    var f = pers.properties.firstName;
+    if (f) {
+        fname = fname + f;
+    }
+    return fname;
+}
+execution.setVariable('ramecwf_finApprOutcomeSluZap', task.getVariableLocal('ramecwf_finApprOutcomeSluZap'));
+if (task.getVariableLocal('ramecwf_finApprOutcomeSluZap') == 'Approve') {
+    execution.setVariable("ramecwf_result", sLocal);
+    execution.setVariable('ramecwf_summaryHistory', ramecwf_result);
+    execution.setVariable('ramecwf_summary', '');
+}
+if (task.getVariableLocal('ramecwf_finApprOutcomeSluZap') == 'Rejected') {
+    execution.setVariable("ramecwf_directive", sLocal);
+    execution.setVariable("ramecwf_mainAssignee", execution.getVariable("ramecwf_mainAssignee"));
+    execution.setVariable("ramecwf_assignees", execution.getVariable("users2assign"));
+    var fullName = personFullName(task.assignee);
+    if (fullName) {
+        sLocal = fullName + ': ' + sLocal;
+    }
+    if (taskDueDate) {
+        sLocal = sLocal + ', Исправить к: ' + formatISO(taskDueDate);
+    }
+    execution.setVariable('ramecwf_summaryHistory', ramecwf_directive);
+    execution.setVariable('ramecwf_summary', '');
+}]]></activiti:string>
+          </activiti:field>
+          <activiti:field name="runAs">
+            <activiti:string><![CDATA[admin]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="flow10" sourceRef="subprocess1" targetRef="finApprTask0"></sequenceFlow>
+    <endEvent id="endevent3" name="End"></endEvent>
+    <sequenceFlow id="flow11" sourceRef="finApprTask0" targetRef="endevent3">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_finApprOutcomeSluZap == 'Approve'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow20" sourceRef="finApprTask0" targetRef="alfrescoScripttask1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_finApprOutcomeSluZap == 'Rejected'}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ramec-sluzap-parallel">
+    <bpmndi:BPMNPlane bpmnElement="ramec-sluzap-parallel" id="BPMNPlane_ramec-sluzap-parallel">
+      <bpmndi:BPMNShape bpmnElement="Startevent1" id="BPMNShape_Startevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="254.0" y="524.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoScripttask1" id="BPMNShape_alfrescoScripttask1">
+        <omgdc:Bounds height="55.0" width="105.0" x="323.0" y="506.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="473.0" y="395.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway1" id="BPMNShape_exclusivegateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="470.0" y="517.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subprocess1" id="BPMNShape_subprocess1">
+        <omgdc:Bounds height="821.0" width="873.0" x="550.0" y="1.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="PerfomingStartevent" id="BPMNShape_PerfomingStartevent">
+        <omgdc:Bounds height="35.0" width="35.0" x="580.0" y="647.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway5" id="BPMNShape_exclusivegateway5">
+        <omgdc:Bounds height="40.0" width="40.0" x="690.0" y="644.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="notifyTask" id="BPMNShape_notifyTask">
+        <omgdc:Bounds height="55.0" width="105.0" x="920.0" y="741.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subprocess4" id="BPMNShape_subprocess4">
+        <omgdc:Bounds height="541.0" width="818.0" x="567.0" y="41.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway3" id="BPMNShape_exclusivegateway3">
+        <omgdc:Bounds height="40.0" width="40.0" x="830.0" y="466.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="checkTask0" id="BPMNShape_checkTask0">
+        <omgdc:Bounds height="66.0" width="131.0" x="1070.0" y="454.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="performTask0" id="BPMNShape_performTask0">
+        <omgdc:Bounds height="55.0" width="105.0" x="663.0" y="459.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway7" id="BPMNShape_exclusivegateway7">
+        <omgdc:Bounds height="40.0" width="40.0" x="1010.0" y="466.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subprocess2" id="BPMNShape_subprocess2">
+        <omgdc:Bounds height="329.0" width="591.0" x="630.0" y="81.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="startevent2" id="BPMNShape_startevent2">
+        <omgdc:Bounds height="35.0" width="35.0" x="666.0" y="336.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="totalCheckDelegatedtask_lvl1" id="BPMNShape_totalCheckDelegatedtask_lvl1">
+        <omgdc:Bounds height="87.0" width="173.0" x="840.0" y="310.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subprocess3" id="BPMNShape_subprocess3">
+        <omgdc:Bounds height="161.0" width="531.0" x="650.0" y="121.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="startevent3" id="BPMNShape_startevent3">
+        <omgdc:Bounds height="35.0" width="35.0" x="670.0" y="181.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="performTask1" id="BPMNShape_performTask1">
+        <omgdc:Bounds height="55.0" width="105.0" x="736.0" y="171.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway4" id="BPMNShape_exclusivegateway4">
+        <omgdc:Bounds height="40.0" width="40.0" x="1076.0" y="178.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="checkTask1" id="BPMNShape_checkTask1">
+        <omgdc:Bounds height="66.0" width="131.0" x="896.0" y="166.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent7" id="BPMNShape_endevent7">
+        <omgdc:Bounds height="35.0" width="35.0" x="1140.0" y="181.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="inclusivegateway1" id="BPMNShape_inclusivegateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="725.0" y="333.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="terminateendevent1" id="BPMNShape_terminateendevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="1145.0" y="336.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="inclusivegateway2" id="BPMNShape_inclusivegateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="1075.0" y="333.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway2" id="BPMNShape_exclusivegateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="1223.0" y="468.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="startevent4" id="BPMNShape_startevent4">
+        <omgdc:Bounds height="35.0" width="35.0" x="596.0" y="471.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent9" id="BPMNShape_endevent9">
+        <omgdc:Bounds height="35.0" width="35.0" x="1286.0" y="468.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="totalCheckDelegatedtask_lvl0" id="BPMNShape_totalCheckDelegatedtask_lvl0">
+        <omgdc:Bounds height="87.0" width="173.0" x="880.0" y="621.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="terminateendevent2" id="BPMNShape_terminateendevent2">
+        <omgdc:Bounds height="35.0" width="35.0" x="1330.0" y="647.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="inclusivegateway3" id="BPMNShape_inclusivegateway3">
+        <omgdc:Bounds height="40.0" width="40.0" x="1240.0" y="644.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="finApprTask0" id="BPMNShape_finApprTask0">
+        <omgdc:Bounds height="55.0" width="105.0" x="1460.0" y="504.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent3" id="BPMNShape_endevent3">
+        <omgdc:Bounds height="35.0" width="35.0" x="1599.0" y="514.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="289.0" y="541.0"></omgdi:waypoint>
+        <omgdi:waypoint x="323.0" y="533.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="428.0" y="533.0"></omgdi:waypoint>
+        <omgdi:waypoint x="470.0" y="537.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="490.0" y="517.0"></omgdi:waypoint>
+        <omgdi:waypoint x="490.0" y="430.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="54.0" width="100.0" x="375.0" y="430.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow12" id="BPMNEdge_flow12">
+        <omgdi:waypoint x="510.0" y="537.0"></omgdi:waypoint>
+        <omgdi:waypoint x="550.0" y="411.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow24" id="BPMNEdge_flow24">
+        <omgdi:waypoint x="615.0" y="664.0"></omgdi:waypoint>
+        <omgdi:waypoint x="690.0" y="664.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow25" id="BPMNEdge_flow25">
+        <omgdi:waypoint x="710.0" y="684.0"></omgdi:waypoint>
+        <omgdi:waypoint x="708.0" y="766.0"></omgdi:waypoint>
+        <omgdi:waypoint x="920.0" y="768.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow26" id="BPMNEdge_flow26">
+        <omgdi:waypoint x="1025.0" y="768.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1260.0" y="768.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1260.0" y="684.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="870.0" y="486.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1010.0" y="486.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow14" id="BPMNEdge_flow14">
+        <omgdi:waypoint x="850.0" y="466.0"></omgdi:waypoint>
+        <omgdi:waypoint x="925.0" y="410.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="1201.0" y="487.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1223.0" y="488.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow13" id="BPMNEdge_flow13">
+        <omgdi:waypoint x="768.0" y="486.0"></omgdi:waypoint>
+        <omgdi:waypoint x="830.0" y="486.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow29" id="BPMNEdge_flow29">
+        <omgdi:waypoint x="1050.0" y="486.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1070.0" y="487.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow17" id="BPMNEdge_flow17">
+        <omgdi:waypoint x="745.0" y="333.0"></omgdi:waypoint>
+        <omgdi:waypoint x="915.0" y="282.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow23" id="BPMNEdge_flow23">
+        <omgdi:waypoint x="1115.0" y="353.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1145.0" y="353.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow27" id="BPMNEdge_flow27">
+        <omgdi:waypoint x="701.0" y="353.0"></omgdi:waypoint>
+        <omgdi:waypoint x="725.0" y="353.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow028" id="BPMNEdge_flow028">
+        <omgdi:waypoint x="765.0" y="353.0"></omgdi:waypoint>
+        <omgdi:waypoint x="840.0" y="353.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow19" id="BPMNEdge_flow19">
+        <omgdi:waypoint x="841.0" y="198.0"></omgdi:waypoint>
+        <omgdi:waypoint x="896.0" y="199.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow18" id="BPMNEdge_flow18">
+        <omgdi:waypoint x="1096.0" y="218.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1095.0" y="255.0"></omgdi:waypoint>
+        <omgdi:waypoint x="788.0" y="255.0"></omgdi:waypoint>
+        <omgdi:waypoint x="788.0" y="226.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow15" id="BPMNEdge_flow15">
+        <omgdi:waypoint x="1027.0" y="199.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1076.0" y="198.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow30" id="BPMNEdge_flow30">
+        <omgdi:waypoint x="1116.0" y="198.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1140.0" y="198.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow31" id="BPMNEdge_flow31">
+        <omgdi:waypoint x="705.0" y="198.0"></omgdi:waypoint>
+        <omgdi:waypoint x="736.0" y="198.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow33" id="BPMNEdge_flow33">
+        <omgdi:waypoint x="915.0" y="282.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1095.0" y="333.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow34" id="BPMNEdge_flow34">
+        <omgdi:waypoint x="1013.0" y="353.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1075.0" y="353.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow21" id="BPMNEdge_flow21">
+        <omgdi:waypoint x="925.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1030.0" y="466.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="1263.0" y="488.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1286.0" y="485.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+        <omgdi:waypoint x="1243.0" y="508.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1243.0" y="550.0"></omgdi:waypoint>
+        <omgdi:waypoint x="715.0" y="550.0"></omgdi:waypoint>
+        <omgdi:waypoint x="715.0" y="514.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="631.0" y="488.0"></omgdi:waypoint>
+        <omgdi:waypoint x="663.0" y="486.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow36" id="BPMNEdge_flow36">
+        <omgdi:waypoint x="730.0" y="664.0"></omgdi:waypoint>
+        <omgdi:waypoint x="880.0" y="664.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow37" id="BPMNEdge_flow37">
+        <omgdi:waypoint x="710.0" y="644.0"></omgdi:waypoint>
+        <omgdi:waypoint x="976.0" y="582.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow38" id="BPMNEdge_flow38">
+        <omgdi:waypoint x="1053.0" y="664.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1240.0" y="664.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow39" id="BPMNEdge_flow39">
+        <omgdi:waypoint x="1280.0" y="664.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1330.0" y="664.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow40" id="BPMNEdge_flow40">
+        <omgdi:waypoint x="976.0" y="582.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1260.0" y="606.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1260.0" y="644.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+        <omgdi:waypoint x="1423.0" y="411.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1512.0" y="504.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow11" id="BPMNEdge_flow11">
+        <omgdi:waypoint x="1565.0" y="531.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1599.0" y="531.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow20" id="BPMNEdge_flow20">
+        <omgdi:waypoint x="1512.0" y="559.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1512.0" y="837.0"></omgdi:waypoint>
+        <omgdi:waypoint x="373.0" y="837.0"></omgdi:waypoint>
+        <omgdi:waypoint x="375.0" y="561.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

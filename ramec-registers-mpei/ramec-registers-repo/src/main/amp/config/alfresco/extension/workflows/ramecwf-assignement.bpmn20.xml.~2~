@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="ramec-porucheniye-parallel" name="Поручение" isExecutable="true">
+    <startEvent id="alfrescoStartevent1" name="Создание поручения" activiti:formKey="ramecwf:setMultiAssigneeTask">
+	      <extensionElements>
+        <activiti:executionListener event="start" class="org.alfresco.repo.workflow.activiti.listener.ScriptExecutionListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[execution.setVariable('ramecwf_mainAssignee', execution.getVariableLocal('ramecwf_mainAssignee'));
+execution.setVariable('ramecwf:assignees', execution.getVariableLocal('ramecwf:assignees'));
+execution.setVariable('ramecwf:assignees', execution.getVariableLocal('ramecwf:resolution'));]]></activiti:string>
+          </activiti:field>
+        </activiti:executionListener>
+      </extensionElements>
+	</startEvent>
+    <serviceTask id="alfrescoScripttask1" name="Подготовка списка" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <documentation>Разбираем введённые группы по пользователям, добавляем индивидуальных исполнителей, формируем общий список.</documentation>
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:string><![CDATA[var newppl = execution.getVariable("ramecwf_assignees");          
+var ppl = newppl.add(execution.getVariable("ramecwf_mainAssignee"));
+var usrs = new java.util.ArrayList();
+
+if (ppl) {
+  ppl = ppl.toArray();
+  var newppl = new java.util.ArrayList();
+  for each (var u2 in ppl) {
+    if (!u2.properties) {
+      /* Если нам пришли nodeRef вместо нодов */
+      u2 = search.findNode(u2);
+      if (!u2) { continue; /* игнорируем, если это был даже не nodeRef, а неведомая фигня */ }
+    }
+    newppl.add(u2);
+    usrs.add(u2.properties.userName);
+  }
+  ppl = newppl;
+}
+else {
+  ppl = new java.util.ArrayList();
+}
+
+execution.setVariable("ramecwf_assignees", new java.util.ArrayList());
+execution.setVariable("users2assign", usrs);
+execution.setVariable("usersCount", usrs.size());]]></activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow1" sourceRef="alfrescoStartevent1" targetRef="alfrescoScripttask1"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="alfrescoScripttask1" targetRef="exclusivegateway1"></sequenceFlow>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow3" sourceRef="exclusivegateway1" targetRef="subprocess1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${usersCount > 0}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow4" name="Исполнители не назначены" sourceRef="exclusivegateway1" targetRef="endevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${usersCount <= 0}]]></conditionExpression>
+    </sequenceFlow>
+    <subProcess id="subprocess1" name="Sub Process">
+      <multiInstanceLoopCharacteristics isSequential="true" activiti:collection="${users2assign}" activiti:elementVariable="users2assign">
+        <completionCondition>${nrOfCompletedInstances &gt; 0}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+      <startEvent id="startevent1" name="Start"></startEvent>
+      <userTask id="alfrescoUsertask1" name="Поручение" activiti:assignee="${user2assign}" activiti:formKey="ramecwf:performMultiAssigneeTask">
+        <documentation>Работа с поручением, изменение состава материалов, передача поручения для дальнейшего исполнения.</documentation>
+        <extensionElements>
+          <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+            <activiti:field name="script">
+              <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;
+
+task.setVariable('ramecwf_summaryHistory', execution.getVariable('ramecwf_summaryHistory'));
+task.setVariable('ramecwf_summary', '');
+
+var grpId = workflowinstanceid;
+var toUserMail = task.getVariable('user2assign');
+if (toUserMail) {
+  toUserMail = people.getPerson(toUserMail);
+
+  if (toUserMail) {
+    var auth = groups.getGroup(grpId);
+    /* Добавляем активити-группу, если её ещё нет */
+    if (!auth) { auth = groups.createRootGroup(grpId, grpId); }
+    /* Добавляем пользователя этой задачи в активити-группу */
+    if (auth && !auth.allUsers.filter(function (elt) { return elt.userName.equals(toUserMail.properties.userName); }).length) {
+      auth.addAuthority(toUserMail.properties.userName);
+    }
+    /* Даём права активити-группе на файлы, где группа ещё не прописана в правах */
+    var grpName = 'GROUP_' + grpId;
+    for each (var f1 in bpm_package.childAssociations['bpm:packageContains']) {
+      if (f1.permissions.indexOf(';' + grpName + ';') == -1) {
+        f1.setPermission('Consumer', grpName);
+      }
+    }
+  }
+}
+
+var mail = actions.create('mail');
+if (mail) {
+  var prevUserName = execution.getVariable("prevUserName");
+  var prevUser = prevUserName ? people.getPerson(prevUserName) : null;
+  var fromUser = prevUser ? prevUser : initiator;
+  var fromUserMail = fromUser.properties.email;
+  if (toUserMail) {
+    toUserMail = toUserMail.properties.email;
+  }
+  if (fromUserMail && toUserMail) {
+    mail.parameters.to = toUserMail;
+    mail.parameters.subject = 'Поручение: ' + task.description;
+    mail.parameters.from = fromUserMail;
+    mail.parameters.template = search.findNode('workspace://SpacesStore/wf-email-html-ftl');
+
+    var templateArgs = new Array();
+    templateArgs['workflowTitle'] = 'Поручение';
+    templateArgs['workflowDueDate'] = task.dueDate;
+    templateArgs['workflowPriority'] = task.priority;
+    templateArgs['workflowPooled'] = false;
+    templateArgs['workflowDescription'] = task.description;
+    templateArgs['workflowId'] = 'activiti$' + task.id; /* Можно добавить '&referrer=tasks&myTasksLinkBack=true', но это ничего не меняет функционально */
+
+    var templateModel = new Array();
+    templateModel['args'] = templateArgs;
+
+    mail.parameters.template_model = templateModel;
+    mail.execute(bpm_package);
+  }
+}]]></activiti:string>
+            </activiti:field>
+            <activiti:field name="runAs">
+              <activiti:string><![CDATA[admin]]></activiti:string>
+            </activiti:field>
+          </activiti:taskListener>
+          <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+            <activiti:field name="script">
+              <activiti:string><![CDATA[execution.setVariable("prevUserName", task.assignee);
+
+var sHist = execution.getVariable('ramecwf_summaryHistory');
+var sLocal = task.getVariableLocal('ramecwf_summary');
+
+var taskDueDate = task.getVariableLocal('ramecwf_dueDate');
+if (taskDueDate) execution.setVariable('bpm_workflowDueDate', taskDueDate);
+
+function formatISO(dt) {
+  var yy = dt.getYear() + 1900;
+  yy = yy + '-';
+  var mm = (dt.getMonth() + 1).toString();
+  mm = (mm < 10 ? '0' + mm : mm) + '-';
+  var dd = dt.getDate().toString();
+  dd = (dd < 10 ? '0' + dd : dd);
+  return(yy + mm + dd);
+}
+
+function personFullName(pers) {
+  if (!pers.properties) {
+  pers = people.getPerson(pers);
+  }
+  if (!pers.properties) { return pers; }
+  var fname = pers.properties.lastName;
+  if (fname) { fname = fname + ' '; }
+  var f = pers.properties.firstName;
+  if (f) { fname = fname + f; }
+  return fname;
+}
+
+if (sLocal) {
+  var fullName = personFullName(task.assignee);
+  if (fullName) { sLocal = '[' + fullName + ']: ' + sLocal; }
+  if (taskDueDate) { sLocal = sLocal + ', выполнить к: ' + formatISO(taskDueDate); }
+}
+
+sHist = ((sHist && sHist.length) ? sHist + '\n' : '') + (sLocal ? sLocal : '');
+execution.setVariable('ramecwf_summaryHistory', sHist);
+execution.setVariable('ramecwf_summary', '');
+
+var a1 = task.getVariableLocal("ramecwf_assignees");
+if (a1) {
+  var a2 = new java.util.ArrayList();
+  /* Присваиваем строковый nodeRef вместо нодов, которые не могут сериализоваться нормально */
+  for each (var a3 in a1.toArray()) { a2.add(a3.nodeRef.toString()); }
+  execution.setVariable("ramecwf_assignees", a2);
+}
+]]></activiti:string>
+            </activiti:field>
+          </activiti:taskListener>
+        </extensionElements>
+      </userTask>
+      <sequenceFlow id="flow5" sourceRef="startevent1" targetRef="alfrescoUsertask1"></sequenceFlow>
+      <userTask id="usertask1" name="Проверить задачу" activiti:assignee="${initiator.properties.userName}" activiti:formKey="ramecwf:checkMultiAssigneeTask"></userTask>
+      <sequenceFlow id="flow6" sourceRef="alfrescoUsertask1" targetRef="usertask1">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_performOutcome == 'Done'}]]></conditionExpression>
+      </sequenceFlow>
+      <exclusiveGateway id="exclusivegateway2" name="Exclusive Gateway"></exclusiveGateway>
+      <sequenceFlow id="flow7" sourceRef="usertask1" targetRef="exclusivegateway2"></sequenceFlow>
+      <endEvent id="endevent2" name="End"></endEvent>
+      <sequenceFlow id="flow8" sourceRef="exclusivegateway2" targetRef="endevent2">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_controlOutcome == 'Approve'}]]></conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="flow9" sourceRef="exclusivegateway2" targetRef="alfrescoUsertask1">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${ramecwf_checkOutcome == 'Reject'}]]></conditionExpression>
+      </sequenceFlow>
+    </subProcess>
+    <userTask id="usertask2" name="Финальная проверка" activiti:assignee="${initiator.properties.userName}" activiti:formKey="ramecwf:finalApprovement"></userTask>
+    <sequenceFlow id="flow10" sourceRef="subprocess1" targetRef="usertask2"></sequenceFlow>
+    <endEvent id="endevent3" name="End"></endEvent>
+    <sequenceFlow id="flow11" sourceRef="usertask2" targetRef="endevent3"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ramec-porucheniye-parallel">
+    <bpmndi:BPMNPlane bpmnElement="ramec-porucheniye-parallel" id="BPMNPlane_ramec-porucheniye-parallel">
+      <bpmndi:BPMNShape bpmnElement="alfrescoStartevent1" id="BPMNShape_alfrescoStartevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="90.0" y="150.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoScripttask1" id="BPMNShape_alfrescoScripttask1">
+        <omgdc:Bounds height="55.0" width="105.0" x="200.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="393.0" y="260.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway1" id="BPMNShape_exclusivegateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="390.0" y="147.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subprocess1" id="BPMNShape_subprocess1">
+        <omgdc:Bounds height="205.0" width="561.0" x="536.0" y="65.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="566.0" y="145.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="alfrescoUsertask1" id="BPMNShape_alfrescoUsertask1">
+        <omgdc:Bounds height="55.0" width="105.0" x="666.0" y="135.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask1" id="BPMNShape_usertask1">
+        <omgdc:Bounds height="66.0" width="131.0" x="816.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="exclusivegateway2" id="BPMNShape_exclusivegateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="992.0" y="144.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent2" id="BPMNShape_endevent2">
+        <omgdc:Bounds height="35.0" width="35.0" x="1056.0" y="145.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="usertask2" id="BPMNShape_usertask2">
+        <omgdc:Bounds height="55.0" width="105.0" x="1131.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent3" id="BPMNShape_endevent3">
+        <omgdc:Bounds height="35.0" width="35.0" x="1300.0" y="150.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="125.0" y="167.0"></omgdi:waypoint>
+        <omgdi:waypoint x="200.0" y="167.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="305.0" y="167.0"></omgdi:waypoint>
+        <omgdi:waypoint x="390.0" y="167.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="430.0" y="167.0"></omgdi:waypoint>
+        <omgdi:waypoint x="536.0" y="167.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="410.0" y="187.0"></omgdi:waypoint>
+        <omgdi:waypoint x="410.0" y="260.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="54.0" width="100.0" x="421.0" y="209.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="601.0" y="162.0"></omgdi:waypoint>
+        <omgdi:waypoint x="666.0" y="162.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="771.0" y="162.0"></omgdi:waypoint>
+        <omgdi:waypoint x="816.0" y="163.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="947.0" y="163.0"></omgdi:waypoint>
+        <omgdi:waypoint x="992.0" y="164.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="1032.0" y="164.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1056.0" y="162.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+        <omgdi:waypoint x="1012.0" y="184.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1011.0" y="243.0"></omgdi:waypoint>
+        <omgdi:waypoint x="718.0" y="243.0"></omgdi:waypoint>
+        <omgdi:waypoint x="718.0" y="190.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+        <omgdi:waypoint x="1097.0" y="167.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1131.0" y="167.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow11" id="BPMNEdge_flow11">
+        <omgdi:waypoint x="1236.0" y="167.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1300.0" y="167.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

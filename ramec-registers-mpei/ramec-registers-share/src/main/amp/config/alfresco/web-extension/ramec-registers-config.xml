@@ -1,0 +1,907 @@
+<alfresco-config>
+  
+  <config>
+    <client>
+      <allow-user-script-execute>true</allow-user-script-execute> 
+    </client>
+  </config>
+
+  <config evaluator="string-compare" condition="DocumentLibrary">
+    <aspects>
+      <visible>
+        <aspect name="ramecedm:registerable" />
+      </visible>
+    </aspects>
+  </config>
+
+
+  <config evaluator="string-compare" condition="DocLibActions">
+    <actions>
+      <!-- Edit properties page -->
+      <action id="document-edit-metadata" type="pagelink" label="actions.document.edit-metadata">
+        <param name="page">edit-metadata?nodeRef={node.nodeRef}</param>
+        <permissions>
+          <permission allow="true">Write</permission>
+        </permissions>
+        <evaluator negate="true">evaluator.doclib.action.isLocked</evaluator>
+        <evaluator negate="true">evaluator.doclib.action.isRamecedmRegisterable</evaluator>
+      </action>
+
+      <!-- Edit properties page with preview -->
+      <action id="document-edit-metadata2" type="pagelink" label="actions.document.edit-metadata" icon="document-edit-metadata">
+        <param name="page">edit-metadata?nodeRef={node.nodeRef}&amp;withPreview=true</param>
+        <permissions>
+          <permission allow="true">Write</permission>
+        </permissions>
+        <evaluator negate="true">evaluator.doclib.action.isLocked</evaluator>
+        <evaluator>evaluator.doclib.action.isRamecedmRegisterable</evaluator>
+      </action>
+      
+      <action id="ramec-rotate-right-action" type="javascript" label="ramec.actions.rotate-right-action" >
+          <param name="function">onActionSimpleRepoAction</param>
+          <permissions>
+              <permission allow="true">Write</permission>
+          </permissions>
+          <param name="action">ramec-rotate-doc-action</param>
+          <param name="angle">90</param>
+          <param name="success">onActionRamecRefreshPage</param>
+		  <param name="successMessage">ramec.message.rotate.success</param>
+		  <param name="failureMessage">ramec.message.rotate.failure</param>
+      </action>
+      <action id="ramec-rotate-left-action" type="javascript" label="ramec.actions.rotate-left-action" >
+          <param name="function">onActionSimpleRepoAction</param>
+          <permissions>
+              <permission allow="true">Write</permission>
+          </permissions>
+          <param name="action">ramec-rotate-doc-action</param>
+		  <param name="angle">-90</param>
+		  <param name="success">onActionRamecRefreshPage</param>
+		  <param name="successMessage">ramec.message.rotate.success</param>
+		  <param name="failureMessage">ramec.message.rotate.failure</param>
+      </action>      
+      <action id="ramec-rotate-180-action" type="javascript" label="ramec.actions.rotate-180-action" >
+          <param name="function">onActionSimpleRepoAction</param>
+          <permissions>
+              <permission allow="true">Write</permission>
+          </permissions>
+          <param name="action">ramec-rotate-doc-action</param>
+		  <param name="angle">180</param>
+		  <param name="success">onActionRamecRefreshPage</param>
+		  <param name="successMessage">ramec.message.rotate.success</param>
+		  <param name="failureMessage">ramec.message.rotate.failure</param>
+      </action>
+           
+    </actions>
+
+    <actionGroups>
+      <actionGroup id="document-details">
+        <action index="121" id="document-edit-metadata2" />
+        <action index="122" id="ramec-rotate-180-action" />
+        <action index="123" id="ramec-rotate-right-action" />
+        <action index="124" id="ramec-rotate-left-action" />
+        
+      </actionGroup>
+    </actionGroups>
+  </config>
+  
+  <config evaluator="string-compare" condition="DocLibCustom">
+	<dependencies>
+		<js src="components/documentlibrary/ramec-actions.js" />
+	</dependencies>
+  </config>  
+
+  <config evaluator="aspect" condition="ramecedm:registerable">
+    <forms>
+      <form>
+        <field-visibility>
+          <show id="ramecedm:registerable_register"/>
+          <show id="ramecedm:registable_title"/>
+          <show id="ramecedm:registable_correspondent_person"/>
+          <show id="ramecedm:registable_correspondent_name"/>
+          <show id="ramecedm:registable_sender_fio"/>
+          <show id="ramecedm:registable_correspondent_number"/>
+          <show id="ramecedm:registable_correspondent_date"/>
+          <show id="ramecedm:registable_addressee"/>
+          <show id="ramecedm:registable_informee"/>
+          <show id="ramecedm:registable_summary"/>
+        </field-visibility>
+        <appearance>
+          <field id="ramecedm:registerable_register">
+            <control template="controls/selectone.ftl">
+              <control-param name="options">(не зарегистрирован),СВ-16,МВ-16</control-param>
+            </control>
+          </field>
+          <field id="ramecedm:registable_title"/>
+          <field id="ramecedm:registable_correspondent_person" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field id="ramecedm:registable_correspondent_name"/>
+          <field id="ramecedm:registable_sender_fio"/>
+          <field id="ramecedm:registable_correspondent_number"/>
+          <field id="ramecedm:registable_correspondent_date" >
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field id="ramecedm:registable_addressee" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field id="ramecedm:registable_informee" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field id="ramecedm:registable_summary">
+            <control template="/alvex-mltext.ftl"/>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="model-type" condition="ramecedm:document_simple_list">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:shortName" />
+          <show id="ramecedm:fullName" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" />
+          <field id="ramecedm:shortName" isSortKey="true" />
+          <field id="ramecedm:fullName" isSortKey="true" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:shortName" />
+          <show id="ramecedm:fullName" />
+        </field-visibility>
+        <create-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="ramecedm:shortName" />
+          <field set="id" id="ramecedm:fullName" />
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="node-type" condition="ramecedm:document_simple_list">
+    <forms>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:shortName" />
+          <show id="ramecedm:fullName" />
+        </field-visibility>
+        <view-form template="/alvex-form.ftl" />
+        <edit-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field id="ramecedm:shortName" isSortKey="true" />
+          <field id="ramecedm:fullName" isSortKey="true" />
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="model-type" condition="ramecedm:document_incoming">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:received_title" />
+          <show id="ramecedm:received_type" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="alvexdt:addressee" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:received_status" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" sortOrder="desc" />
+          <field id="ramecedm:received_title" label="Содержание документа" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="alvexdt:registerDate" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="ramecedm:received_sender_fio" />
+          <show id="ramecedm:correspondent_number" />
+          <show id="ramecedm:correspondent_date" />
+          <show id="ramecedm:received_type" />
+          <show id="ramecedm:received_status" />
+          <show id="alvexdt:deliveryType" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:received_title" />
+          <show id="alvexdt:addressee" />
+          <show id="ramecedm:informee" />
+          <show id="alvexdt:dueDate" />
+          <show id="alvexdt:completeDate" />
+          <show id="alvexdt:summary" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <create-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="corr" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="type" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="file" appearance="" label=""/>
+          <set id="execution" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="alvexdt:registerDate">
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="corr" id="ramecedm:correspondent_name" />
+          <field set="corr" id="ramecedm:received_sender_fio" />
+          <field set="corr" id="ramecedm:correspondent_number" />
+          <field set="corr" id="ramecedm:correspondent_date" >
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="type" id="ramecedm:received_type" />
+          <field set="type" id="ramecedm:received_status" />
+          <field set="type" id="alvexdt:deliveryType" /> 
+          <field set="file" id="alvexdt:files">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+              <control-param name="viewType">mini</control-param>
+              <control-param name="withoutRegistries">true</control-param>
+            </control>
+          </field>
+          <field set="file" id="ramecedm:received_title" label="Содержание документа" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="execution" id="alvexdt:addressee">
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="ramecedm:informee">
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="alvexdt:dueDate" />
+          <field set="execution" id="alvexdt:completeDate" />
+          <field set="execution" id="alvexdt:summary" label="Резолюция" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="execution" id="ramecedm:wfstart" />
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="node-type" condition="ramecedm:document_incoming">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:received_title" />
+          <show id="ramecedm:received_type" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="alvexdt:addressee" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:received_status" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" sortOrder="desc" />
+          <field id="ramecedm:received_title" label="Содержание документа" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="alvexdt:registerDate" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="ramecedm:received_sender_fio" />
+          <show id="ramecedm:correspondent_number" />
+          <show id="ramecedm:correspondent_date" />
+          <show id="ramecedm:received_type" />
+          <show id="ramecedm:received_status" />
+          <show id="alvexdt:deliveryType" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:received_title" />
+          <show id="alvexdt:addressee" />
+          <show id="ramecedm:informee" />
+          <show id="alvexdt:dueDate" />
+          <show id="alvexdt:completeDate" />
+          <show id="alvexdt:summary" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <view-form template="/alvex-form.ftl" />
+        <edit-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="corr" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="type" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="file" appearance="" label=""/>
+          <set id="execution" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="alvexdt:registerDate">
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="corr" id="ramecedm:correspondent_name" />
+          <field set="corr" id="ramecedm:received_sender_fio" />
+          <field set="corr" id="ramecedm:correspondent_number" />
+          <field set="corr" id="ramecedm:correspondent_date" >
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="type" id="ramecedm:received_type" />
+          <field set="type" id="ramecedm:received_status" />
+          <field set="type" id="alvexdt:deliveryType" />
+          <field set="file" id="alvexdt:files">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+              <control-param name="viewType">mini</control-param>
+              <control-param name="withoutRegistries">true</control-param>
+            </control>
+          </field>
+          <field set="file" id="ramecedm:received_title" label="Содержание документа" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="execution" id="alvexdt:addressee">
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="ramecedm:informee">
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="alvexdt:dueDate" />
+          <field set="execution" id="alvexdt:completeDate" />
+          <field set="execution" id="alvexdt:summary" label="Резолюция" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="execution" id="ramecedm:wfstart" />
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="model-type" condition="ramecedm:document_outcoming">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:outcoming_title" />
+          <show id="ramecedm:outcoming_type" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="alvexdt:addressee" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:outcoming_status" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" sortOrder="desc" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="alvexdt:registerDate" />
+          <show id="ramecedm:outcoming_title" />
+          <show id="ramecedm:outcoming_type" />
+          <show id="ramecedm:outcoming_status" />
+          <show id="alvexdt:deliveryType" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="alvexdt:addressee" />
+          <show id="alvexdt:status" />
+          <show id="alvexdt:summary" />
+          <show id="alvexdt:files" />
+          <show id="alvexdt:linkedDocuments" />
+        </field-visibility>
+        <create-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="title" appearance="" label="" />
+          <set id="received" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="correspondent" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="execution" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="summary" appearance="" label="" />
+          <set id="files" appearance="" label=""/>
+          <set id="related" appearance="" label=""/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="alvexdt:registerDate">
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="title" id="ramecedm:outcoming_title" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="received" id="ramecedm:outcoming_type" />
+          <field set="received" id="ramecedm:outcoming_status" />
+          <field set="received" id="alvexdt:deliveryType" />
+          <field set="correspondent" id="ramecedm:correspondent_name" label="Адресат" />
+          <field set="correspondent" id="alvexdt:contactName" />
+          <field set="execution" id="alvexdt:addressee" label="Отправитель" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="alvexdt:status" />
+          <field set="summary" id="alvexdt:summary" label="Резолюция" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="files" id="alvexdt:files">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+              <control-param name="viewType">mini</control-param>
+              <control-param name="withoutRegistries">true</control-param>
+            </control>
+          </field>
+          <field set="related" id="alvexdt:linkedDocuments">
+            <control template="/alvex-docreg-picker.ftl"/>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="node-type" condition="ramecedm:document_outcoming">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:outcoming_title" />
+          <show id="ramecedm:outcoming_type" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="alvexdt:addressee" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:outcoming_status" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" sortOrder="desc" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="alvexdt:registerDate" />
+          <show id="ramecedm:outcoming_title" />
+          <show id="ramecedm:outcoming_type" />
+          <show id="ramecedm:outcoming_status" />
+          <show id="alvexdt:deliveryType" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="alvexdt:addressee" />
+          <show id="alvexdt:status" />
+          <show id="alvexdt:summary" />
+          <show id="alvexdt:files" />
+          <show id="alvexdt:linkedDocuments" />
+        </field-visibility>
+        <view-form template="/alvex-form.ftl" />
+        <edit-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="title" appearance="" label="" />
+          <set id="received" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="correspondent" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="execution" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="summary" appearance="" label="" />
+          <set id="files" appearance="" label=""/>
+          <set id="related" appearance="" label=""/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="alvexdt:registerDate">
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="title" id="ramecedm:outcoming_title" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="received" id="ramecedm:outcoming_type" />
+          <field set="received" id="ramecedm:outcoming_status" />
+          <field set="received" id="alvexdt:deliveryType" />
+          <field set="correspondent" id="ramecedm:correspondent_name" label="Адресат" />
+          <field set="correspondent" id="alvexdt:contactName" />
+          <field set="execution" id="alvexdt:addressee" label="Отправитель" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="alvexdt:status" />
+          <field set="summary" id="alvexdt:summary" label="Резолюция" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="files" id="alvexdt:files">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+              <control-param name="viewType">mini</control-param>
+              <control-param name="withoutRegistries">true</control-param>
+            </control>
+          </field>
+          <field set="related" id="alvexdt:linkedDocuments">
+            <control template="/alvex-docreg-picker.ftl"/>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="model-type" condition="ramecedm:document_porucheniye">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:porucheniye_title" />
+          <show id="ramecedm:porucheniye_type" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="ramecedm:addressees" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:porucheniye_status" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" sortOrder="desc" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="alvexdt:registerDate" />
+          <show id="ramecedm:porucheniye_title" />
+          <show id="ramecedm:porucheniye_type" />
+          <show id="ramecedm:porucheniye_status" />
+          <show id="alvexdt:deliveryType" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="ramecedm:porucheniye_sender_fio" />
+          <show id="ramecedm:correspondent_number" />
+          <show id="ramecedm:correspondent_date" />
+          <show id="alvexdt:summary" />
+          <show id="ramecedm:addressees" />
+          <show id="ramecedm:groupsaddressees" />
+          <show id="alvexdt:dueDate" />
+          <show id="alvexdt:completeDate" />
+          <show id="alvexdt:files" />
+          <show id="alvexdt:linkedDocuments" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <create-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="title" appearance="" label="" />
+          <set id="porucheniye" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="corr_name" appearance="" label="" />
+          <set id="sender" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="corr_num" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="summary" appearance="" label="" />
+          <set id="execution" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="files" appearance="" label=""/>
+          <set id="related" appearance="" label=""/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="alvexdt:registerDate">
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="title" id="ramecedm:porucheniye_title" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="porucheniye" id="ramecedm:porucheniye_type" />
+          <field set="porucheniye" id="ramecedm:porucheniye_status" />
+          <field set="porucheniye" id="alvexdt:deliveryType" />
+          <field set="corr_name" id="ramecedm:correspondent_name" label="Организация-корреспондент" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="sender" id="ramecedm:porucheniye_sender_fio" />
+          <field set="corr_num" id="ramecedm:correspondent_number" />
+          <field set="corr_num" id="ramecedm:correspondent_date" >
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="summary" id="alvexdt:summary" label="Резолюция (комментарий)" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="execution" id="ramecedm:addressees" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="ramecedm:groupsaddressees" />
+          <field set="execution" id="alvexdt:dueDate" />
+          <field set="execution" id="alvexdt:completeDate" />
+          <field set="execution" id="ramecedm:wfstart" />
+          <field set="files" id="alvexdt:files">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+              <control-param name="viewType">mini</control-param>
+              <control-param name="withoutRegistries">true</control-param>
+            </control>
+          </field>
+          <field set="related" id="alvexdt:linkedDocuments">
+            <control template="/alvex-docreg-picker.ftl"/>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+  <config evaluator="node-type" condition="ramecedm:document_porucheniye">
+    <forms>
+      <form id="datagrid">
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="ramecedm:porucheniye_title" />
+          <show id="ramecedm:porucheniye_type" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="ramecedm:addressees" />
+          <show id="alvexdt:files" />
+          <show id="ramecedm:porucheniye_status" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <appearance>
+          <field id="alvexdt:id" isSortKey="true" sortOrder="desc" />
+        </appearance>
+      </form>
+      <form>
+        <field-visibility>
+          <show id="alvexdt:id" />
+          <show id="alvexdt:registerDate" />
+          <show id="ramecedm:porucheniye_title" />
+          <show id="ramecedm:porucheniye_type" />
+          <show id="ramecedm:porucheniye_status" />
+          <show id="alvexdt:deliveryType" />
+          <show id="ramecedm:correspondent_name" />
+          <show id="ramecedm:porucheniye_sender_fio" />
+          <show id="ramecedm:correspondent_number" />
+          <show id="ramecedm:correspondent_date" />
+          <show id="alvexdt:summary" />
+          <show id="ramecedm:addressees" />
+          <show id="ramecedm:groupsaddressees" />
+          <show id="alvexdt:dueDate" />
+          <show id="alvexdt:completeDate" />
+          <show id="alvexdt:files" />
+          <show id="alvexdt:linkedDocuments" />
+          <show id="ramecedm:wfstart" />
+        </field-visibility>
+        <view-form template="/alvex-form.ftl" />
+        <edit-form template="/alvex-form.ftl" />
+        <appearance>
+          <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+          <set id="title" appearance="" label="" />
+          <set id="porucheniye" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="corr_name" appearance="" label="" />
+          <set id="sender" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="corr_num" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl" />
+          <set id="summary" appearance="" label="" />
+          <set id="execution" appearance="" label="" template="/org/alfresco/components/form/2-column-set.ftl"/>
+          <set id="files" appearance="" label=""/>
+          <set id="related" appearance="" label=""/>
+          <field set="id" id="alvexdt:id">
+            <control template="/alvex-auto-numberer.ftl"/>
+          </field>
+          <field set="id" id="alvexdt:registerDate">
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="title" id="ramecedm:porucheniye_title" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="porucheniye" id="ramecedm:porucheniye_type" />
+          <field set="porucheniye" id="ramecedm:porucheniye_status" />
+          <field set="porucheniye" id="alvexdt:deliveryType" />
+          <field set="corr_name" id="ramecedm:correspondent_name" label="Организация-корреспондент" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="sender" id="ramecedm:porucheniye_sender_fio" />
+          <field set="corr_num" id="ramecedm:correspondent_number" />
+          <field set="corr_num" id="ramecedm:correspondent_date" >
+            <control template="/alvex-autodate.ftl"/>
+          </field>
+          <field set="summary" id="alvexdt:summary" label="Резолюция (комментарий)" >
+            <control template="/alvex-mltext.ftl">
+              <control-param name="style">width: 98%</control-param>
+            </control>
+          </field>
+          <field set="execution" id="ramecedm:addressees" >
+            <control template="/orgchart-picker.ftl" />
+          </field>
+          <field set="execution" id="ramecedm:groupsaddressees" />
+          <field set="execution" id="alvexdt:dueDate" />
+          <field set="execution" id="alvexdt:completeDate" />
+          <field set="execution" id="ramecedm:wfstart" />
+          <field set="files" id="alvexdt:files">
+            <control template="/alvex-uploader.ftl">
+              <control-param name="uploadDirectory">uploads</control-param>
+              <control-param name="createUploadDirectory">true</control-param>
+              <control-param name="viewType">mini</control-param>
+              <control-param name="withoutRegistries">true</control-param>
+            </control>
+          </field>
+          <field set="related" id="alvexdt:linkedDocuments">
+            <control template="/alvex-docreg-picker.ftl"/>
+          </field>
+        </appearance>
+      </form>
+    </forms>
+  </config>
+
+ <config evaluator="model-type" condition="ramecedm:document_note">
+   <forms>
+     <form id="datagrid">
+       <field-visibility>
+         <show id="alvexdt:id" />
+         <show id="alvexdt:registerDate" />
+         <show id="ramecedm:note_title" />
+         <show id="alvexdt:addressee" />
+         <show id="alvexdt:creator" />
+         <show id="alvexdt:files" />
+         <show id="alvexdt:summary" />
+         <show id="alvexdt:assignee" />
+         <show id="alvexdt:dueDate" />
+         <show id="ramecedm:wfstart" />
+       </field-visibility>
+       <appearance>
+       </appearance>
+     </form>
+     <form>
+       <field-visibility>
+         <show id="alvexdt:id" />
+         <show id="alvexdt:registerDate" />
+         <show id="ramecedm:note_title" />
+         <show id="alvexdt:addressee" />
+         <show id="alvexdt:creator" />
+         <show id="alvexdt:files" />
+         <show id="alvexdt:summary" />
+         <show id="alvexdt:assignee" />
+         <show id="alvexdt:dueDate" />
+         <show id="ramecedm:wfstart" />
+       </field-visibility>
+       <create-form template="/alvex-form.ftl" />
+       <appearance>
+         <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+         <set id="title" appearance="" label="" />
+         <set id="persons" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+         <set id="files" appearance="" label=""/>
+         <set id="summary" appearance="" label="" />
+         <set id="execution" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+         <field set="id" id="alvexdt:id">
+           <control template="/alvex-auto-numberer.ftl"/>
+         </field>
+         <field set="id" id="alvexdt:registerDate">
+           <control template="/alvex-autodate.ftl"/>
+         </field>
+         <field set="title" id="ramecedm:note_title" label="Содержание" >
+           <control template="/alvex-mltext.ftl">
+             <control-param name="style">width: 98%</control-param>
+           </control>
+         </field>
+         <field set="persons" id="alvexdt:addressee" label="Кому" >
+           <control template="/orgchart-picker.ftl" />
+         </field>
+         <field set="persons" id="alvexdt:creator" label="Подготовил" >
+           <control template="/orgchart-picker.ftl" />
+         </field>
+         <field set="files" id="alvexdt:files">
+           <control template="/alvex-uploader.ftl">
+             <control-param name="uploadDirectory">uploads</control-param>
+             <control-param name="createUploadDirectory">true</control-param>
+             <control-param name="viewType">mini</control-param>
+             <control-param name="withoutRegistries">true</control-param>
+           </control>
+         </field>
+         <field set="summary" id="alvexdt:summary" label="Резолюция" >
+           <control template="/alvex-mltext.ftl">
+             <control-param name="style">width: 98%</control-param>
+           </control>
+         </field>
+         <field set="execution" id="alvexdt:assignee" label="Исполнитель" >
+           <control template="/orgchart-picker.ftl" />
+         </field>
+         <field set="execution" id="alvexdt:dueDate" />
+         <field set="execution" id="ramecedm:wfstart" />
+       </appearance>
+     </form>
+   </forms>
+ </config>
+
+ <config evaluator="node-type" condition="ramecedm:document_note">
+   <forms>
+     <form id="datagrid">
+       <field-visibility>
+         <show id="alvexdt:id" />
+         <show id="alvexdt:registerDate" />
+         <show id="ramecedm:note_title" />
+         <show id="alvexdt:addressee" />
+         <show id="alvexdt:creator" />
+         <show id="alvexdt:files" />
+         <show id="alvexdt:summary" />
+         <show id="alvexdt:assignee" />
+         <show id="alvexdt:dueDate" />
+         <show id="ramecedm:wfstart" />
+       </field-visibility>
+       <appearance>
+       </appearance>
+     </form>
+     <form>
+       <field-visibility>
+         <show id="alvexdt:id" />
+         <show id="alvexdt:registerDate" />
+         <show id="ramecedm:note_title" />
+         <show id="alvexdt:addressee" />
+         <show id="alvexdt:creator" />
+         <show id="alvexdt:files" />
+         <show id="alvexdt:summary" />
+         <show id="alvexdt:assignee" />
+         <show id="alvexdt:dueDate" />
+         <show id="ramecedm:wfstart" />
+       </field-visibility>
+       <view-form template="/alvex-form.ftl" />
+       <edit-form template="/alvex-form.ftl" />
+       <appearance>
+         <set id="id" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+         <set id="title" appearance="" label="" />
+         <set id="persons" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+         <set id="files" appearance="" label=""/>
+         <set id="summary" appearance="" label="" />
+         <set id="execution" appearance="" label="" template="/org/alfresco/components/form/3-column-set.ftl"/>
+         <field set="id" id="alvexdt:id">
+           <control template="/alvex-auto-numberer.ftl"/>
+         </field>
+         <field set="id" id="alvexdt:registerDate">
+           <control template="/alvex-autodate.ftl"/>
+         </field>
+         <field set="title" id="ramecedm:note_title" label="Содержание" >
+           <control template="/alvex-mltext.ftl">
+             <control-param name="style">width: 98%</control-param>
+           </control>
+         </field>
+         <field set="persons" id="alvexdt:addressee" label="Кому" >
+           <control template="/orgchart-picker.ftl" />
+         </field>
+         <field set="persons" id="alvexdt:creator" label="Подготовил" >
+           <control template="/orgchart-picker.ftl" />
+         </field>
+         <field set="files" id="alvexdt:files">
+           <control template="/alvex-uploader.ftl">
+             <control-param name="uploadDirectory">uploads</control-param>
+             <control-param name="createUploadDirectory">true</control-param>
+             <control-param name="viewType">mini</control-param>
+             <control-param name="withoutRegistries">true</control-param>
+           </control>
+         </field>
+         <field set="summary" id="alvexdt:summary" label="Резолюция" >
+           <control template="/alvex-mltext.ftl">
+             <control-param name="style">width: 98%</control-param>
+           </control>
+         </field>
+         <field set="execution" id="alvexdt:assignee" label="Исполнитель" >
+           <control template="/orgchart-picker.ftl" />
+         </field>
+         <field set="execution" id="alvexdt:dueDate" />
+         <field set="execution" id="ramecedm:wfstart" />
+       </appearance>
+     </form>
+   </forms>
+ </config>
+
+</alfresco-config>

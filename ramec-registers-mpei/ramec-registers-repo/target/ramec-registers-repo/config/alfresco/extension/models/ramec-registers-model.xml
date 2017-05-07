@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="ramecedm:registers" xmlns="http://www.alfresco.org/model/dictionary/1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<description>Ramec EDM Services Document Management System</description>
+	<author>   </author>
+	<version>1.0</version>
+	<imports>
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+		<import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+		<import uri="http://www.alfresco.org/model/datalist/1.0" prefix="dl"/>
+		<import uri="http://alvexcore.com/prefix/alvexdt" prefix="alvexdt"/>
+	</imports>
+	<namespaces>
+		<namespace uri="http://www.ramec.ru/model/ramecedm/1.0" prefix="ramecedm"/>
+	</namespaces>
+	<types>
+		<type name="ramecedm:document_simple_list">
+			<title>Простой список значений</title>
+			<parent>alvexdt:object</parent>
+			<properties>
+				<property name="ramecedm:shortName">
+					<title>Краткое наименование</title>
+					<type>d:text</type>
+					<mandatory>true</mandatory>
+				</property>
+				<property name="ramecedm:fullName">
+					<title>Полное наименование</title>
+					<type>d:text</type>
+					<mandatory>true</mandatory>
+				</property>
+			</properties>
+		</type>
+		<type name="ramecedm:document_incoming">
+			<title>Входящие НИУ МЭИ</title>
+			<parent>alvexdt:object</parent>
+			<properties>
+				<property name="ramecedm:received_title">
+					<title>Название документа</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:received_type">
+					<title>Тип входящего</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:received_status">
+					<title>Статус входящего</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:received_sender_fio">
+					<title>Отправитель ФИО</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<mandatory-aspects>
+				<aspect>alvexdt:withDeliveryType</aspect>
+				<aspect>ramecedm:correspondentable</aspect>
+				<aspect>alvexdt:executable</aspect>
+				<aspect>alvexdt:addressable</aspect>
+				<aspect>ramecedm:informeeable</aspect>
+				<aspect>alvexdt:summarizable</aspect>
+				<aspect>alvexdt:withLinkedDocuments</aspect>
+				<aspect>ramecedm:wfstartable</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecedm:document_outcoming">
+			<title>Исходящие НИУ МЭИ</title>
+			<parent>alvexdt:object</parent>
+			<properties>
+				<property name="ramecedm:outcoming_title">
+					<title>Название документа</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:outcoming_type">
+					<title>Тип исходящего</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:outcoming_status">
+					<title>Статус исходящего</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<mandatory-aspects>
+				<aspect>alvexdt:withDeliveryType</aspect>
+				<aspect>ramecedm:correspondentable</aspect>
+				<aspect>alvexdt:executable</aspect>
+				<aspect>alvexdt:addressable</aspect>
+				<aspect>ramecedm:informeeable</aspect>
+				<aspect>alvexdt:summarizable</aspect>
+				<aspect>alvexdt:withLinkedDocuments</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecedm:document_note">
+			<title>Служебные записки НИУ МЭИ</title>
+			<parent>alvexdt:object</parent>
+			<properties>
+				<property name="ramecedm:note_title">
+					<title>Содержание</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<mandatory-aspects>
+				<aspect>alvexdt:withcreator</aspect>
+				<aspect>alvexdt:executable</aspect>
+				<aspect>alvexdt:addressable</aspect>
+				<aspect>alvexdt:summarizable</aspect>
+				<aspect>alvexdt:withLinkedDocuments</aspect>
+				<aspect>ramecedm:wfstartable</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecedm:document_porucheniye">
+			<title>Поручение НИУ МЭИ</title>
+			<parent>alvexdt:object</parent>
+			<properties>
+				<property name="ramecedm:porucheniye_title">
+					<title>Название документа</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:porucheniye_type">
+					<title>Тип поручения</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:porucheniye_status">
+					<title>Статус поручения</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:porucheniye_sender_fio">
+					<title>Отправитель ФИО</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<mandatory-aspects>
+				<aspect>alvexdt:withDeliveryType</aspect>
+				<aspect>ramecedm:correspondentable</aspect>
+				<aspect>alvexdt:executable</aspect>
+				<aspect>ramecedm:addressable</aspect>
+				<aspect>ramecedm:groupsaddressable</aspect>
+				<aspect>alvexdt:summarizable</aspect>
+				<aspect>alvexdt:withLinkedDocuments</aspect>
+				<aspect>ramecedm:wfstartable</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecedm:document_porucheniyeNew">
+			<title>Задача НИУ МЭИ</title>
+			<parent>alvexdt:object</parent>
+			<properties>
+				<property name="ramecedm:porucheniyeNew_title">
+					<title>Название документа</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:porucheniyeNew_priority">
+					<title>Приоритет</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:porucheniyeNew_sender_fio">
+					<title>Отправитель ФИО</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<mandatory-aspects>
+				<aspect>alvexdt:withDeliveryType</aspect>
+				<aspect>ramecedm:correspondentable</aspect>
+				<aspect>alvexdt:executable</aspect>
+				<aspect>ramecedm:addresseeHead</aspect>
+				<aspect>ramecedm:controller</aspect>
+				<aspect>alvexdt:summarizable</aspect>
+				<aspect>alvexdt:withLinkedDocuments</aspect>
+				<aspect>ramecedm:wfstartable</aspect>
+			</mandatory-aspects>
+		</type>
+	</types>
+	<aspects>
+		<aspect name="ramecedm:correspondentable">
+			<properties>
+				<property name="ramecedm:correspondent_name">
+					<title>Корреспондент</title>
+					<type>d:text</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:correspondent_number">
+					<title>Корр.номер</title>
+					<type>d:text</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:correspondent_date">
+					<title>Дата корр.</title>
+					<type>d:date</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<associations>
+				<association name="ramecedm:correspondent_person">
+					<title>Корреспондент</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecedm:informeeable">
+			<associations>
+				<association name="ramecedm:informee">
+					<title>Уведомить</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecedm:wfstartable">
+			<properties>
+				<property name="ramecedm:wfstart">
+					<title>Запуск процесса?</title>
+					<type>d:boolean</type>
+					<mandatory>true</mandatory>
+					<default>true</default>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecedm:registerable">
+			<title>РАМЭК СЭД: регистрируемый документ</title>
+			<properties>
+				<property name="ramecedm:registerable_register">
+					<title>Занести в реестр</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:registable_title">
+					<title>Название документа</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:registable_correspondent_name">
+					<title>Корреспондент</title>
+					<type>d:text</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:registable_sender_fio">
+					<title>Отправитель ФИО</title>
+					<type>d:text</type>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:registable_correspondent_number">
+					<title>Корр.номер</title>
+					<type>d:text</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:registable_correspondent_date">
+					<title>Дата корр.</title>
+					<type>d:date</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+				<property name="ramecedm:registable_summary">
+					<title>Содержание</title>
+					<type>d:text</type>
+					<mandatory>false</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+			<associations>
+				<association name="ramecedm:registable_correspondent_person">
+					<title>Корреспондент</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+				<association name="ramecedm:registable_addressee">
+					<title>Адресат</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+				<association name="ramecedm:registable_informee">
+					<title>Уведомить</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecedm:addressable">
+			<associations>
+				<association name="ramecedm:addressees">
+					<title>Кому</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecedm:groupsaddressable">
+			<associations>
+				<association name="ramecedm:groupsaddressees">
+					<title>Кому (группы)</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:authorityContainer</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecedm:addresseeHead">
+			<associations>
+				<association name="ramecedm:addresseeHead">
+					<title>Кому</title>
+					<source>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecedm:controller">
+			<properties>
+				<property name="ramecedm:controller">
+					<title>На контроль</title>
+					<type>d:text</type>
+					<mandatory>true</mandatory>
+					<index enabled="true">
+						<atomic>true</atomic>
+						<stored>true</stored>
+						<tokenised>both</tokenised>
+					</index>
+				</property>
+			</properties>
+		</aspect>
+	</aspects>
+</model>

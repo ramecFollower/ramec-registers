@@ -1,0 +1,58 @@
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0" xmlns:cm="http://www.alfresco.org/model/content/1.0" xmlns:app="http://www.alfresco.org/model/application/1.0" xmlns:sys="http://www.alfresco.org/model/system/1.0" >
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-docregister-prefix.js</cm:name>
+    <cm:title>Присвоить номеру записи реестра префикс согласно имени реестра</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-docregister-prefix.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>15727594-e81e-49a0-ab19-b34cad523537</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-docregister-startwf.js</cm:name>
+    <cm:title>Запустить бизнес-процесс обработки документа</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-docregister-startwf.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>d09c7327-5fa7-4878-84a6-64839abea2ab</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-docregister-startwf-porucheniye.js</cm:name>
+    <cm:title>Запустить бизнес-процесс обработки документа (Поручение)</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-docregister-startwf-porucheniye.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>087c477c-6188-4b5f-be54-4c383f13c224</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-persons-disable-notifications.js</cm:name>
+    <cm:title>Отключить оповещения e-mail в профилях пользователей</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-persons-disable-notifications.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>ef3d04c3-dafb-45f5-b1c0-c53a97054bd7</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-move-registered-fax.js</cm:name>
+    <cm:title>Перемещать факсы при регистрации входящего документа</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-move-registered-fax.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>b7ee69c4-466c-4f3f-a7eb-bc331567d81e</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-register-doc.js</cm:name>
+    <cm:title>Упрощённая регистрация документа</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-register-doc.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>c3e926bd-2e09-4e9f-9803-2876179395a2</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-sync-orgchart.js</cm:name>
+    <cm:title>Импорт пользователей и инфраструктуры из JSON файлов</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-sync-orgchart.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>3a171117-ac7d-41bc-9615-0abce9a65119</sys:node-uuid>
+  </cm:content>
+  <cm:content>
+    <app:uifacets />
+    <cm:name>ramec-align-reg-numbers.js</cm:name>
+    <cm:title>Исправление номеров в реестрах (выравнивание вправо)</cm:title>
+    <cm:content>contentUrl=classpath:alfresco/bootstrap/ramec-align-reg-numbers.js|mimetype=application/x-javascript|size=|encoding=UTF-8</cm:content>
+    <sys:node-uuid>d9e13c29-fa07-488a-bad4-0f40e469ed4a</sys:node-uuid>
+  </cm:content>
+</view:view>

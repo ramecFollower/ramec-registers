@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2013 sp1 (http://www.altova.com) by ﻿Type ur fucking name ! (Type ur Company -.-) -->
+<model name="ramecwf:businessprocessmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+	<description>RAMEC-VS Business Process Model</description>
+	<author>RAMEC-VS</author>
+	<version>1.0</version>
+	<!-- Imports are required to allow references to definitions in other models -->
+	<imports>
+		<!-- Import Alfresco Dictionary Definitions -->
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+		<!-- Import Alfresco System Definitions -->
+		<import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+		<!-- Import Alfresco Content Domain Model Definitions -->
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+		<!-- Import User Model Definitions -->
+		<import uri="http://www.alfresco.org/model/user/1.0" prefix="usr"/>
+		<!-- Import Alfresco Business Process Model Definitions -->
+		<import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm"/>
+	</imports>
+	<namespaces>
+		<namespace uri="http://www.ramec.ru/model/ramecwf" prefix="ramecwf"/>
+	</namespaces>
+	<types>
+		<type name="ramecwf:submitMultiAssigneeTask">
+			<parent>bpm:startTask</parent>
+			<properties>
+				<property name="ramecwf:submitOutcome">
+					<type>d:text</type>
+					<default>Поручено к исполнению</default>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}submitOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:submitMultiAssigneeTaskSluZap">
+			<parent>ramecwf:submitMultiAssigneeTask</parent>
+		</type>
+		<type name="ramecwf:controlMultiAssigneeTask">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:dueDate">
+					<title>Срок исполнения</title>
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:controlOutcome">
+					<type>d:text</type>
+					<default>Next</default>
+					<constraints>
+						<constraint type="LIST" name="ramecwf:controlOutcomeConstraint">
+							<parameter name="allowedValues">
+								<list>
+									<value>Next</value>
+									<value>Approve</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:reassignable">
+					<default>false</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}controlOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:controlMultiAssigneeTaskSluZap">
+			<parent>ramecwf:controlMultiAssigneeTask</parent>
+		</type>
+	</types>
+	<aspects>
+		<aspect name="ramecwf:assignees">
+			<associations>
+				<association name="ramecwf:assignees">
+					<title>Кому</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:groupAssignees">
+			<associations>
+				<association name="ramecwf:groupAssignees">
+					<title>Кому (группы)</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:authorityContainer</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:summarizable">
+			<properties>
+				<property name="ramecwf:summary">
+					<title>Резолюция</title>
+					<type>d:text</type>
+				</property>
+				<property name="ramecwf:summaryHistory">
+					<title>Резолюции</title>
+					<type>d:text</type>
+				</property>
+			</properties>
+		</aspect>
+	</aspects>
+</model>

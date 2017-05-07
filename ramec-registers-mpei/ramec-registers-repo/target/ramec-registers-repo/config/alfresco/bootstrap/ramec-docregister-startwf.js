@@ -1,0 +1,46 @@
+function startWorkflow()
+{
+  var wf = actions.create("start-workflow");
+  wf.parameters.workflowName = "activiti$alvex-arbitrary-task";
+
+  var wftitle = document.name;
+  var doctitle = document.properties["ramecedm:received_title"];
+  if (doctitle !== null) {
+    wftitle = wftitle + " " + doctitle;
+  }
+  wf.parameters["bpm:workflowDescription"] = wftitle;
+
+  var assignee = document.associations["alvexdt:addressee"];
+  if (assignee !== null) {
+    wf.parameters["bpm:assignee"] = assignee;
+  }
+
+  var assignees = document.associations["ramecedm:informee"];
+  if (assignees !== null) {
+    wf.parameters["alvexwfat:assignees"] = assignees;
+  }
+
+  wf.parameters["bpm:workflowDueDate"] = document.properties["alvexdt:dueDate"];
+  wf.parameters["bpm:workflowCompleteDate"] = document.properties["alvexdt:completeDate"];
+  wf.parameters["alvexwfat:confirmationRequired"] = false;
+  return wf.execute(document);
+}
+
+function main()
+{
+  if (document.properties["ramecedm:wfstart"] === true && document.associations["alvexdt:addressee"] !== null) {
+    // Запускаем процесс
+    startWorkflow();
+    document.properties["ramecedm:wfstart"] = false;
+    document.save();
+
+    // Даём права чтения вложенных документов активити-группам
+    for each (var grp in document.activeWorkflows) {
+      for each (var fl in document.associations['alvexdt:files']) {
+        fl.setPermission('Consumer', grp.id);
+      }
+    }
+  }
+}
+
+main();

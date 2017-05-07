@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="ramecwf:businessprocessmodel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+	<description>RAMEC-VS Business Process Model</description>
+	<author>RAMEC-VS</author>
+	<version>1.0</version>
+	<!-- Imports are required to allow references to definitions in other models -->
+	<imports>
+		<!-- Import Alfresco Dictionary Definitions -->
+		<import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+		<!-- Import Alfresco System Definitions -->
+		<import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+		<!-- Import Alfresco Content Domain Model Definitions -->
+		<import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+		<!-- Import User Model Definitions -->
+		<import uri="http://www.alfresco.org/model/user/1.0" prefix="usr"/>
+		<!-- Import Alfresco Business Process Model Definitions -->
+		<import uri="http://www.alfresco.org/model/bpm/1.0" prefix="bpm"/>
+		<!-- Import Alvex Model Definitions -->
+		<import uri="http://alvexcore.com/prefix/alvexdt" prefix="alvexdt"/>
+	</imports>
+	<namespaces>
+		<namespace uri="http://www.ramec.ru/model/ramecwf" prefix="ramecwf"/>
+	</namespaces>
+  
+	<types>
+		<type name="ramecwf:setMultiAssigneeTask">
+			<parent>bpm:startTask</parent>
+			<properties>
+				<property name="ramecwf:setOutcome">
+					<type>d:text</type>
+					<default>reject</default>
+					<constraints>
+						<constraint name="ramecwf:setOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Начать БП -->
+									<value>Approve</value>
+									<!-- Завершить процесс-->
+									<value>StopProcess</value>
+								</list>
+							</parameter>
+							<parameter name="caseSensitive">
+								<value>true</value>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}setOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:mainAssignee</aspect>
+			</mandatory-aspects>
+		</type>
+		<!--type name="ramecwf:setMultiAssigneeTask">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:setOutcome">
+					<type>d:text</type>
+					<default>reject</default>
+					<constraints>
+						<constraint name="ramecwf:setOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<value>Approve</value>
+									<value>StopProcess</value>
+								</list>
+							</parameter>
+							<parameter name="caseSensitive">
+								<value>true</value>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}setOutcome</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:orgcorrespondent</aspect>
+				<aspect>ramecwf:oocomment</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+				<aspect>ramecwf:assigneeHead</aspect>
+				<aspect>ramecwf:selectcontent</aspect>
+			</mandatory-aspects>
+		</type-->
+		<type name="ramecwf:performMultiAssigneeTask">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:headsresolution">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:assigneecomm">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:thisTaskInitiator">
+					<!--передаем сюда юзера назначившего таск при делегировании-->
+					<type>d:text</type>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:performOutcome">
+					<type>d:text</type>
+					<default>reject</default>
+					<constraints>
+						<constraint name="ramecwf:performOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Делегировать (доступно, если выбраны исполнители) -->
+									<value>Delegate</value>
+									<!-- Завершить и отправить на проверку-->
+									<value>Done</value>
+								</list>
+							</parameter>
+							<parameter name="caseSensitive">
+								<value>true</value>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<associations>
+				<association name="ramecwf:delegate">
+					<title>Delegate</title>
+					<source>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+				<association name="ramecwf:selectgroup">
+					<title>Select group</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:authorityContainer</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}performOutcome</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:orgcorrespondent</aspect>
+				<aspect>ramecwf:mycomment</aspect>
+				<aspect>ramecwf:selectcontent</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:checkMultiAssigneeTask">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:headresolution">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:assigneescomments">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:checkOutcome">
+					<type>d:text</type>
+					<default>reject</default>
+					<constraints>
+						<constraint name="ramecwf:checkOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Утвердить-->
+									<value>Approve</value>
+									<!-- Отправить на доработку-->
+									<value>Reject</value>
+									<!--Отправить вышестоящему на проверку-->
+									<value>upstreamReview</value>
+								</list>
+							</parameter>
+							<parameter name="caseSensitive">
+								<value>true</value>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}checkOutcome</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+				<aspect>ramecwf:mycomment</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:finalApprovement">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:myresolution">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:assigneescomment">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:mycomm">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+				<property name="ramecwf:finApprOutcome">
+					<type>d:text</type>
+					<default>reject</default>
+					<constraints>
+						<constraint name="ramecwf:finApprOutcome" type="LIST">
+							<parameter name="allowedValues">
+								<list>
+									<!-- Утвердить-->
+									<value>Approve</value>
+									<!-- Отправить на доработку-->
+									<value>Reject</value>
+								</list>
+							</parameter>
+							<parameter name="caseSensitive">
+								<value>true</value>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}finApprOutcome</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:packageItemActionGroup">
+					<default>edit_and_remove_package_item_actions</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:orgcorrespondent</aspect>
+				<aspect>ramecwf:assignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:submitMultiAssigneeTaskSluZap">
+			<parent>bpm:startTask</parent>
+			<properties>
+				<property name="ramecwf:submitOutcome">
+					<type>d:text</type>
+					<default>Поручено к исполнению</default>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}submitOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+			</mandatory-aspects>
+		</type>
+		<type name="ramecwf:controlMultiAssigneeTaskSluZap">
+			<parent>bpm:activitiOutcomeTask</parent>
+			<properties>
+				<property name="ramecwf:dueDate">
+					<title>Срок исполнения</title>
+					<type>d:date</type>
+				</property>
+				<property name="ramecwf:controlOutcome">
+					<type>d:text</type>
+					<default>Next</default>
+					<constraints>
+						<constraint type="LIST" name="ramecwf:controlOutcomeConstraint">
+							<parameter name="allowedValues">
+								<list>
+									<value>Next</value>
+									<value>Approve</value>
+								</list>
+							</parameter>
+						</constraint>
+					</constraints>
+				</property>
+			</properties>
+			<overrides>
+				<property name="bpm:reassignable">
+					<default>false</default>
+				</property>
+				<property name="bpm:packageActionGroup">
+					<default>add_package_item_actions</default>
+				</property>
+				<property name="bpm:outcomePropertyName">
+					<default>{http://www.ramec.ru/model/ramecwf}controlOutcome</default>
+				</property>
+			</overrides>
+			<mandatory-aspects>
+				<aspect>ramecwf:summarizable</aspect>
+				<aspect>ramecwf:assignees</aspect>
+				<aspect>ramecwf:groupAssignees</aspect>
+			</mandatory-aspects>
+		</type>
+	</types>
+	<aspects>
+  <aspect name="ramecwf:mainAssignee">
+			<associations>
+				<association name="ramecwf:mainAssignee">
+					<title>Ответственный исполнитель</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:assignees">
+			<associations>
+				<association name="ramecwf:assignees">
+					<title>Кому</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:assigneeHead">
+			<associations>
+				<association name="ramecwf:assigneeHead">
+					<title>Руководитель</title>
+					<source>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:person</class>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:groupAssignees">
+			<associations>
+				<association name="ramecwf:groupAssignees">
+					<title>Кому (группы)</title>
+					<source>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</source>
+					<target>
+						<class>cm:authorityContainer</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:summarizable">
+			<properties>
+				<property name="ramecwf:summary">
+					<title>Резолюция</title>
+					<type>d:text</type>
+				</property>
+				<property name="ramecwf:summaryHistory">
+					<title>Резолюции</title>
+					<type>d:text</type>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:oocomment">
+			<properties>
+				<property name="ramecwf:oocomment">
+					<title>Комментарий общего отдела</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:resolution">
+			<properties>
+				<property name="ramecwf:resolution">
+					<title>Мой комментарий</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:mycomment">
+			<properties>
+				<property name="ramecwf:mycomment">
+					<title>Мой комментарий</title>
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>true</mandatory>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+		<aspect name="ramecwf:selectcontent">
+			<associations>
+				<association name="ramecwf:selectcontent">
+					<title>Добавить файлы</title>
+					<source>
+						<mandatory>true</mandatory>
+						<many>false</many>
+					</source>
+					<target>
+						<class>cm:content</class>
+						<mandatory>false</mandatory>
+						<many>true</many>
+					</target>
+				</association>
+			</associations>
+		</aspect>
+		<aspect name="ramecwf:orgcorrespondent">
+			<properties>
+				<property name="ramecwf:orgcorrespondent">
+					<type>d:text</type>
+					<protected>false</protected>
+					<mandatory>false</mandatory>
+					<multiple>false</multiple>
+				</property>
+			</properties>
+		</aspect>
+	</aspects>
+</model>

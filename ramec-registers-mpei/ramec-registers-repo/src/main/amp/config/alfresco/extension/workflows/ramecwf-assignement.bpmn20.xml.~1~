@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="ramecwf" name="ramecwf" isExecutable="true">
+    <startEvent id="start" activiti:initiator="initiatorUserName" activiti:formKey="ramecwf:start"></startEvent>
+    <sequenceFlow id="sequenceFlow1" sourceRef="start" targetRef="serviceTask1"></sequenceFlow>
+    <serviceTask id="serviceTask1" name="Review initialization" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:expression><![CDATA[execution.setVariable('ramecwf_settaskapprovalcount', 0);
+execution.setVariable('ramecwf_settaskrequiredapprovalcount', 1);]]></activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="sequenceFlow2" sourceRef="serviceTask1" targetRef="userTask1"></sequenceFlow>
+    <userTask id="userTask1" name="SetTask" activiti:assignee="${ramecwf_selectpeople.properties.userName}" activiti:formKey="ramecwf:settask">
+      <documentation>Review task</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;;]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof task.getVariableLocal('ramecwf_selectpeople') != undefined) execution.setVariable('ramecwf_selectpeople', task.getVariableLocal('ramecwf_selectpeople'));
+if (typeof task.getVariableLocal('ramecwf_selectpeople2') != undefined) execution.setVariable('ramecwf_selectpeople2', task.getVariableLocal('ramecwf_selectpeople2'));
+if (typeof task.getVariableLocal('ramecwf_selectcontent') != undefined) execution.setVariable('ramecwf_selectcontent', task.getVariableLocal('ramecwf_selectcontent'));
+if(task.getVariableLocal('ramecwf_settasktransitions') == 'Approve') {
+execution.setVariable('ramecwf_settaskapprovalcount', ramecwf_settaskapprovalcount + 1);
+}]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="userTask2" name="PerformTask" activiti:assignee="${ramecwf_selectpeople.properties.userName}" activiti:formKey="ramecwf:performtask">
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;;]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof task.getVariableLocal('ramecwf_assigneecomm') != undefined) execution.setVariable('ramecwf_assigneecomm', task.getVariableLocal('ramecwf_assigneecomm'));
+if (typeof task.getVariableLocal('ramecwf_mycomment') != undefined) execution.setVariable('ramecwf_mycomment', task.getVariableLocal('ramecwf_mycomment'));
+if (typeof task.getVariableLocal('ramecwf_selectcontent') != undefined) execution.setVariable('ramecwf_selectcontent', task.getVariableLocal('ramecwf_selectcontent'));
+if (typeof task.getVariableLocal('ramecwf_delegate') != undefined) execution.setVariable('ramecwf_delegate', task.getVariableLocal('ramecwf_delegate'));
+if (typeof task.getVariableLocal('ramecwf_selectgroup') != undefined) execution.setVariable('ramecwf_selectgroup', task.getVariableLocal('ramecwf_selectgroup'));]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="userTask3" name="CheckTask" activiti:assignee="${ramecwf_selectpeople.properties.userName}" activiti:formKey="ramecwf:checktask">
+      <documentation>Review task</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;;]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof task.getVariableLocal('ramecwf_selectcontent') != undefined) execution.setVariable('ramecwf_selectcontent', task.getVariableLocal('ramecwf_selectcontent'));
+if (typeof task.getVariableLocal('ramecwf_mycomment') != undefined) execution.setVariable('ramecwf_mycomment', task.getVariableLocal('ramecwf_mycomment'));
+if(task.getVariableLocal('ramecwf_checktasktransitions') == 'Approve') {
+execution.setVariable('ramecwf_checktaskapprovalcount', ramecwf_checktaskapprovalcount + 1);
+}]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <serviceTask id="serviceTask3" name="Review initialization" activiti:class="org.alfresco.repo.workflow.activiti.script.AlfrescoScriptDelegate">
+      <extensionElements>
+        <activiti:field name="script">
+          <activiti:expression><![CDATA[execution.setVariable('ramecwf_finalapprovementapprovalcount', 0);
+execution.setVariable('ramecwf_finalapprovementrequiredapprovalcount', 1);]]></activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="sequenceFlow16" sourceRef="serviceTask3" targetRef="userTask6"></sequenceFlow>
+    <userTask id="userTask6" name="FinalApprovement" activiti:assignee="${ramecwf_selectpeople.properties.userName}" activiti:formKey="ramecwf:finalapprovement">
+      <documentation>Review task</documentation>
+      <extensionElements>
+        <activiti:taskListener event="create" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof bpm_workflowDueDate != 'undefined') task.dueDate = bpm_workflowDueDate;
+if (typeof bpm_workflowPriority != 'undefined') task.priority = bpm_workflowPriority;;]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+        <activiti:taskListener event="complete" class="org.alfresco.repo.workflow.activiti.tasklistener.ScriptTaskListener">
+          <activiti:field name="script">
+            <activiti:string><![CDATA[if (typeof task.getVariableLocal('ramecwf_mycomm') != undefined) execution.setVariable('ramecwf_mycomm', task.getVariableLocal('ramecwf_mycomm'));
+if(task.getVariableLocal('ramecwf_finalapprovementtransitions') == 'Approve') {
+execution.setVariable('ramecwf_finalapprovementapprovalcount', ramecwf_finalapprovementapprovalcount + 1);
+}]]></activiti:string>
+          </activiti:field>
+        </activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <endEvent id="end"></endEvent>
+    <sequenceFlow id="flow1" sourceRef="userTask1" targetRef="userTask2"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="userTask2" targetRef="userTask3"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="userTask3" targetRef="serviceTask3"></sequenceFlow>
+    <sequenceFlow id="flow4" sourceRef="userTask6" targetRef="end"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ramecwf">
+    <bpmndi:BPMNPlane bpmnElement="ramecwf" id="BPMNPlane_ramecwf">
+      <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+        <omgdc:Bounds height="35.0" width="35.0" x="0.0" y="85.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="serviceTask1" id="BPMNShape_serviceTask1">
+        <omgdc:Bounds height="60.0" width="100.0" x="80.0" y="70.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTask1" id="BPMNShape_userTask1">
+        <omgdc:Bounds height="60.0" width="100.0" x="230.0" y="70.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTask2" id="BPMNShape_userTask2">
+        <omgdc:Bounds height="60.0" width="100.0" x="360.0" y="70.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTask3" id="BPMNShape_userTask3">
+        <omgdc:Bounds height="60.0" width="100.0" x="490.0" y="70.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="serviceTask3" id="BPMNShape_serviceTask3">
+        <omgdc:Bounds height="60.0" width="100.0" x="620.0" y="70.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="userTask6" id="BPMNShape_userTask6">
+        <omgdc:Bounds height="60.0" width="100.0" x="770.0" y="73.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end" id="BPMNShape_end">
+        <omgdc:Bounds height="35.0" width="35.0" x="890.0" y="85.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sequenceFlow1" id="BPMNEdge_sequenceFlow1">
+        <omgdi:waypoint x="35.0" y="102.0"></omgdi:waypoint>
+        <omgdi:waypoint x="80.0" y="100.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sequenceFlow2" id="BPMNEdge_sequenceFlow2">
+        <omgdi:waypoint x="180.0" y="100.0"></omgdi:waypoint>
+        <omgdi:waypoint x="230.0" y="100.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sequenceFlow16" id="BPMNEdge_sequenceFlow16">
+        <omgdi:waypoint x="720.0" y="100.0"></omgdi:waypoint>
+        <omgdi:waypoint x="770.0" y="103.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="330.0" y="100.0"></omgdi:waypoint>
+        <omgdi:waypoint x="360.0" y="100.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="460.0" y="100.0"></omgdi:waypoint>
+        <omgdi:waypoint x="490.0" y="100.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="590.0" y="100.0"></omgdi:waypoint>
+        <omgdi:waypoint x="620.0" y="100.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="870.0" y="103.0"></omgdi:waypoint>
+        <omgdi:waypoint x="890.0" y="102.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

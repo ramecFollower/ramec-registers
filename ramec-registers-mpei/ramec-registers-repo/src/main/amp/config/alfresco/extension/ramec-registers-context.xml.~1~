@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+<beans>
+  <bean id="ramec-registers" parent="dictionaryModelBootstrap" depends-on="dictionaryBootstrap,alvex-documents-registers-deployer">
+    <property name="labels">
+      <list>
+        <value>alfresco.extension.messages.ramec-registers</value>
+      </list>
+    </property>
+    <property name="models">
+      <list>
+        <value>alfresco/extension/models/ramec-registers-model.xml</value>
+      </list>
+    </property>
+  </bean>
+  <bean id="ramec-registers-bootstrap" class="org.alfresco.repo.module.ImporterModuleComponent" parent="module.baseComponent" depends-on="ramec-registers">
+    <property name="moduleId" value="ramec-registers-repo" />
+    <property name="executeOnceOnly" value="false" />
+    <property name="name" value="documentsRegistersBootstrap" />
+    <property name="description" value="RAMEC Documents Registers bootstrap" />
+    <property name="sinceVersion" value="1.0" />
+    <property name="appliesFromVersion" value="1.0" />
+    <property name="importer" ref="spacesBootstrap"/>
+    <property name="bootstrapViews">
+      <list>
+        <props>
+          <prop key="uuidBinding">UPDATE_EXISTING</prop>
+          <prop key="path">/${spaces.company_home.childname}/${spaces.dictionary.childname}/${spaces.scripts.childname}</prop>
+          <prop key="location">alfresco/bootstrap/ramec-extension-registry.xml</prop>
+        </props>
+      </list>
+    </property>
+  </bean>
+  <bean id="ramec-workflows-wd" parent="workflowDeployer" depends-on="ramec-registers">
+    <!-- Register workflows -->
+    <property name="workflowDefinitions">
+      <list>
+        <props>
+          <prop key="engineId">activiti</prop>
+          <prop key="location">alfresco/extension/workflows/ramecwf-assignement.bpmn20.xml</prop>
+          <prop key="mimetype">text/xml</prop>
+          <prop key="redeploy">true</prop>
+        </props>
+        <props>
+          <prop key="engineId">activiti</prop>
+          <prop key="location">alfresco/extension/workflows/ramecwf-sluzap.bpmn20.xml</prop>
+          <prop key="mimetype">text/xml</prop>
+          <prop key="redeploy">true</prop>
+        </props>
+		<props>
+          <prop key="engineId">activiti</prop>
+          <prop key="mimeType">text/xml</prop>
+          <prop key="location">alfresco/extension/ramecwf-zadacha.bpmn20.xml</prop>
+          <prop key="redeploy">true</prop>
+        </props>
+      </list>
+    </property>
+    <!-- Labels -->
+    <property name="labels">
+      <list>
+        <value>alfresco.extension.messages.ramec-wf</value>
+      </list>
+    </property>
+    <!-- Register models -->
+    <property name="models">
+      <list>
+        <value>alfresco/extension/models/ramecwf-model.xml</value>
+      </list>
+	  <list>
+        <value>alfresco/extension/ramecwf-zadacha-model.xml</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="ramec-rotate-doc-action" class="ru.ramec.action.executer.RotateDocumentActionExecuter" parent="action-executer">
+	    <property name="nodeService">
+	        <ref bean="NodeService" />
+	    </property>
+        <property name="contentService">
+            <ref bean="ContentService" />
+        </property>
+  </bean>
+
+  
+</beans>
